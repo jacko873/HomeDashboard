@@ -38,9 +38,17 @@ components, and deploys them:
 
 Then point the TV's browser at `http://<container-ip>/music`.
 
-**Updating:** `git pull && ./deploy/install.sh` — the script is idempotent;
-it rebuilds, redeploys and restarts only what's needed, and never overwrites
-your `/etc/tv-dashboard/api.env`.
+**Updating:**
+
+```bash
+cd HomeDashboard
+./deploy/update.sh        # pull + rebuild + redeploy + restart (fast)
+```
+
+`update.sh` exits early when there's nothing new (`--force` rebuilds
+anyway). Re-run `./deploy/install.sh` instead when you want the slow,
+thorough path too (apt upgrade, Go/Node updates, nginx/systemd config) —
+it's idempotent and never overwrites your `/etc/tv-dashboard/api.env`.
 
 ## Development
 

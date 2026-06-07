@@ -141,7 +141,9 @@ log "Building the Go API"
 mkdir -p "$APP_DIR/bin"
 version=$(git -C "$SRC_DIR" describe --tags --always 2>/dev/null || echo unknown)
 (cd "$SRC_DIR/tv-dashboard-api" &&
-    go build -ldflags "-X main.version=$version" -o "$APP_DIR/bin/server" ./cmd/server)
+    go build -ldflags "-X main.version=$version" -o "$APP_DIR/bin/server.new" ./cmd/server)
+# mv over any running binary (a direct write would hit "text file busy").
+mv -f "$APP_DIR/bin/server.new" "$APP_DIR/bin/server"
 
 log "Building the frontend"
 (cd "$SRC_DIR/tv-dashboard" &&
