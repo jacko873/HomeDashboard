@@ -7,7 +7,8 @@ Playing** screen first, with more pages (status, …) to come.
 | --- | --- |
 | [`tv-dashboard/`](tv-dashboard/) | React + Vite frontend — dark, TV-scaled, polls the API every second |
 | [`tv-dashboard-api/`](tv-dashboard-api/) | Go backend — Sonos-first now-playing API with optional Spotify enrichment, designed to host all future dashboard APIs |
-| [`deploy/`](deploy/) | Install/update script for an LXC container (Debian/Ubuntu) |
+| [`deploy/`](deploy/) | Install/update scripts for an LXC container (Debian/Ubuntu) |
+| [`deploy/homeassistant/`](deploy/homeassistant/) | Home Assistant automations: cast the dashboard to the TV when music plays |
 
 Each component has its own README with full docs.
 
