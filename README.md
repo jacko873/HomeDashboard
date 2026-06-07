@@ -19,8 +19,14 @@ Inside a fresh Debian or Ubuntu container:
 apt-get update && apt-get install -y git
 git clone https://github.com/<you>/HomeDashboard.git
 cd HomeDashboard
+cp .env.example .env   # optional: Sonos/Spotify settings, port, default player
 ./deploy/install.sh
 ```
+
+The root [.env.example](.env.example) holds **deploy** configuration — the
+installer reads it (command-line env vars still win) and seeds the API's
+`/etc/tv-dashboard/api.env` from it on first install. For local development,
+each component has its own `.env.example` instead.
 
 The script updates the container, installs Go, Node and nginx, builds both
 components, and deploys them:

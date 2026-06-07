@@ -14,11 +14,14 @@
 #   ./deploy/install.sh                      # from inside a git checkout
 #   REPO_URL=https://github.com/you/HomeDashboard.git ./install.sh   # standalone
 #
-# Tunables (env vars):
+# Settings come from (highest precedence first): command-line env vars,
+# a .env file at the repo root (see .env.example), then defaults.
 #   REPO_URL        repo to clone when not running from a checkout
 #   BRANCH          branch to deploy            [main]
 #   DEFAULT_PLAYER  frontend default player    [living_room]
 #   HTTP_PORT       nginx listen port          [80]
+#   MUSIC_PROVIDER, SONOS_HOSTS, SONOS_PLAYER_*, SPOTIFY_*   seeded into
+#                   /etc/tv-dashboard/api.env on first install
 set -euo pipefail
 
 # ── settings ───────────────────────────────────────────────────────────────
@@ -29,14 +32,28 @@ ENV_FILE=/etc/tv-dashboard/api.env
 SERVICE=tv-dashboard-api
 SERVICE_USER=tvdash
 
-BRANCH=${BRANCH:-main}
-DEFAULT_PLAYER=${DEFAULT_PLAYER:-living_room}
-HTTP_PORT=${HTTP_PORT:-80}
 GO_MIN_VERSION=1.24
 NODE_MIN_MAJOR=20
 
 log()  { echo -e "\e[1;32m==>\e[0m $*"; }
 fail() { echo -e "\e[1;31mERROR:\e[0m $*" >&2; exit 1; }
+
+# load_dotenv exports KEY=VALUE pairs from a .env file. Variables already
+# set in the environment win, so command-line overrides keep working.
+load_dotenv() {
+    [ -f "$1" ] || return 0
+    log "Loading settings from $1"
+    while IFS= read -r line || [ -n "$line" ]; do
+        case "$line" in ''|\#*) continue ;; esac
+        key=${line%%=*}
+        value=${line#*=}
+        key=$(echo "$key" | tr -d '[:space:]')
+        case "$key" in [A-Za-z_]*) ;; *) continue ;; esac
+        if [ -z "${!key+x}" ]; then
+            export "$key=$value"
+        fi
+    done < "$1"
+}
 
 [ "$(id -u)" -eq 0 ] || fail "run as root (inside the container): sudo $0"
 . /etc/os-release 2>/dev/null || true
@@ -96,17 +113,24 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 if [ -d "$script_dir/../tv-dashboard-api" ]; then
     SRC_DIR=$(cd "$script_dir/.." && pwd)
     log "Using local checkout at $SRC_DIR"
+    load_dotenv "$SRC_DIR/.env"
 elif [ -d "$SRC_DIR/.git" ]; then
-    log "Updating existing clone at $SRC_DIR (branch $BRANCH)"
+    load_dotenv "$SRC_DIR/.env"
+    log "Updating existing clone at $SRC_DIR (branch ${BRANCH:-main})"
     git -C "$SRC_DIR" fetch --prune origin
-    git -C "$SRC_DIR" checkout "$BRANCH"
-    git -C "$SRC_DIR" pull --ff-only origin "$BRANCH"
+    git -C "$SRC_DIR" checkout "${BRANCH:-main}"
+    git -C "$SRC_DIR" pull --ff-only origin "${BRANCH:-main}"
 else
     [ -n "${REPO_URL:-}" ] || fail "not in a checkout and REPO_URL is not set"
-    log "Cloning $REPO_URL (branch $BRANCH) to $SRC_DIR"
+    log "Cloning $REPO_URL (branch ${BRANCH:-main}) to $SRC_DIR"
     mkdir -p "$APP_DIR"
-    git clone --branch "$BRANCH" "$REPO_URL" "$SRC_DIR"
+    git clone --branch "${BRANCH:-main}" "$REPO_URL" "$SRC_DIR"
+    load_dotenv "$SRC_DIR/.env"
 fi
+
+# Defaults for anything not set via environment or repo .env.
+DEFAULT_PLAYER=${DEFAULT_PLAYER:-living_room}
+HTTP_PORT=${HTTP_PORT:-80}
 
 # ── 4. build ───────────────────────────────────────────────────────────────
 log "Building the Go API"
@@ -128,27 +152,34 @@ id -u $SERVICE_USER >/dev/null 2>&1 || useradd --system --no-create-home --shell
 
 mkdir -p "$(dirname $ENV_FILE)"
 if [ ! -f $ENV_FILE ]; then
-    cat > $ENV_FILE <<EOF
-# tv-dashboard-api configuration — see tv-dashboard-api/.env.example for
-# all options. Edit, then: systemctl restart $SERVICE
-ADDR=127.0.0.1:8080
-DEFAULT_PLAYER=$DEFAULT_PLAYER
-
-# Sonos is the default provider and discovers players via SSDP. If multicast
-# discovery doesn't work from this container, list player IPs instead:
-#SONOS_HOSTS=192.168.1.50,192.168.1.51
-
-# Optional Spotify enrichment (artwork/metadata gaps only):
-#SPOTIFY_CLIENT_ID=
-#SPOTIFY_CLIENT_SECRET=
-#SPOTIFY_REFRESH_TOKEN=
-
-# No Sonos on this network? Use built-in fake data:
-#MUSIC_PROVIDER=demo
-EOF
+    # emit VAR only when it has a value, otherwise a commented placeholder.
+    emit() { if [ -n "${!1:-}" ]; then echo "$1=${!1}"; else echo "#$1=$2"; fi; }
+    {
+        echo "# tv-dashboard-api configuration — see tv-dashboard-api/.env.example"
+        echo "# for all options. Edit, then: systemctl restart $SERVICE"
+        echo "ADDR=127.0.0.1:8080"
+        echo "DEFAULT_PLAYER=$DEFAULT_PLAYER"
+        echo
+        echo "# Music backend: sonos (default) or demo (built-in fake data)."
+        emit MUSIC_PROVIDER "demo"
+        echo
+        echo "# Sonos discovers players via SSDP. If multicast discovery doesn't"
+        echo "# work from this container, list player IPs instead:"
+        emit SONOS_HOSTS "192.168.1.50,192.168.1.51"
+        # Logical player ID -> room name mappings, if any were configured.
+        while IFS='=' read -r k v; do
+            [ -n "$k" ] && echo "$k=$v"
+        done < <(env | grep '^SONOS_PLAYER_' || true)
+        echo
+        echo "# Optional Spotify enrichment (artwork/metadata gaps only):"
+        emit SPOTIFY_CLIENT_ID ""
+        emit SPOTIFY_CLIENT_SECRET ""
+        emit SPOTIFY_REFRESH_TOKEN ""
+    } > $ENV_FILE
+    chmod 600 $ENV_FILE
     log "Created $ENV_FILE (edit it to configure Sonos/Spotify)"
 else
-    log "Keeping existing $ENV_FILE"
+    log "Keeping existing $ENV_FILE (settings from .env apply to first install only)"
 fi
 
 cat > /etc/systemd/system/$SERVICE.service <<EOF
