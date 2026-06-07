@@ -202,6 +202,28 @@ func TestSpotifyTrackID(t *testing.T) {
 	}
 }
 
+func TestSourceFor(t *testing.T) {
+	cases := []struct {
+		uri, provider string
+	}{
+		{"x-sonos-spotify:spotify%3atrack%3aabc?sid=12", "spotify"},
+		{"x-sonos-vli:RINCON_5CAAFD1320D001400:2,spotify:31f64420a0e0", "spotify"},
+		{"x-sonos-vli:RINCON_5CAAFD1320D001400:1,airplay:abc", "airplay"},
+		{"x-sonosapi-stream:s12345?sid=254", "radio"},
+		{"x-file-cifs://nas/music/a.mp3", "library"},
+		{"https://example.com/stream.mp3", "stream"},
+	}
+	for _, c := range cases {
+		src := sourceFor(c.uri)
+		if src == nil || src.Provider != c.provider {
+			t.Errorf("sourceFor(%q).Provider = %v, want %q", c.uri, src, c.provider)
+		}
+	}
+	if sourceFor("") != nil {
+		t.Error("sourceFor(\"\") should be nil")
+	}
+}
+
 func TestMapState(t *testing.T) {
 	cases := []struct {
 		sonosState, title string

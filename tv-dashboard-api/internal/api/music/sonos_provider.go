@@ -367,6 +367,17 @@ func sourceFor(trackURI string) *Source {
 	}
 	scheme, _, _ := strings.Cut(trackURI, ":")
 	switch {
+	case strings.HasPrefix(scheme, "x-sonos-vli"):
+		// Direct-control session, e.g. Spotify Connect or AirPlay:
+		// x-sonos-vli:RINCON_…:2,spotify:<session-id>
+		switch {
+		case strings.Contains(trackURI, ",spotify:"):
+			return &Source{Provider: "spotify", URI: trackURI}
+		case strings.Contains(trackURI, ",airplay:"):
+			return &Source{Provider: "airplay", URI: trackURI}
+		default:
+			return &Source{Provider: "sonos", URI: trackURI}
+		}
 	case strings.HasPrefix(scheme, "x-sonosapi-stream"), strings.HasPrefix(scheme, "x-rincon-mp3radio"),
 		strings.HasPrefix(scheme, "x-sonosapi-radio"):
 		return &Source{Provider: "radio", URI: trackURI}
