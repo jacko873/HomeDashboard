@@ -1,0 +1,12 @@
+# Local environment files — commit the .env.example files instead.
+.env
+
+# Build outputs
+node_modules/
+dist/
+bin/
+
+# Tooling / editor state
+.claude/
+*.log
+.DS_Store

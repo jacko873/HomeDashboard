@@ -1,0 +1,594 @@
+/* ============================================================
+   TV Dashboard — global styles
+   Dark, Spotify-like, designed for large screens (up to 85" 4K).
+   Sizes use vw/vh/vmin so the layout scales with the panel.
+   ============================================================ */
+
+:root {
+  --bg: #0c0c0e;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.1);
+  --text: #ffffff;
+  --text-dim: rgba(255, 255, 255, 0.7);
+  --text-faint: rgba(255, 255, 255, 0.45);
+  --accent: #1db954; /* Spotify green */
+  --danger: #f25555;
+  --radius-lg: 1.2vmin;
+  --radius-xl: 2vmin;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; /* TV dashboard: no scrollbars */
+  cursor: none; /* hide pointer on a TV */
+}
+
+img {
+  user-select: none;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ------------------------------------------------------------
+   Background art
+   ------------------------------------------------------------ */
+
+.background-art {
+  position: fixed;
+  inset: 0;
+  /* Below all page content (in-flow text would otherwise paint under a
+     positioned z-index:0 sibling). */
+  z-index: -1;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.background-art__image {
+  position: absolute;
+  inset: -6%; /* bleed past the edges so the blur has no seams */
+  width: 112%;
+  height: 112%;
+  object-fit: cover;
+  filter: blur(60px) saturate(1.3) brightness(0.55);
+  transform: scale(1.05);
+  animation: fade-in 1.2s ease both;
+}
+
+.background-art__overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.5));
+}
+
+/* ------------------------------------------------------------
+   Now Playing layout
+   ------------------------------------------------------------ */
+
+.now-playing {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr minmax(24vw, 28vw);
+  gap: 3vw;
+  height: 100vh;
+  padding: 4vh 4vw;
+}
+
+.now-playing__main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.now-playing__art-wrap {
+  position: relative;
+  margin-bottom: 4vh;
+}
+
+.now-playing__art {
+  width: 46vh;
+  height: 46vh;
+  object-fit: cover;
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 2.5vh 8vh rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: fade-in 0.6s ease both;
+}
+
+.now-playing__art--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12vh;
+  color: var(--text-faint);
+  background: var(--surface);
+}
+
+.now-playing__paused-badge {
+  position: absolute;
+  bottom: 2vh;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.8vh 2vw;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  font-size: 2vh;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.now-playing__title {
+  margin: 0;
+  max-width: 90%;
+  font-size: 6.5vh;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0.4vh 2vh rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.now-playing__artist {
+  margin: 1.5vh 0 0;
+  font-size: 3.6vh;
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+.now-playing__album {
+  margin: 0.6vh 0 0;
+  font-size: 2.6vh;
+  font-weight: 400;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+/* ------------------------------------------------------------
+   Progress bar
+   ------------------------------------------------------------ */
+
+.progress {
+  width: min(70vh, 90%);
+  margin-top: 4vh;
+}
+
+.progress__track {
+  height: 1vh;
+  border-radius: 99px;
+  background: var(--surface-strong);
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+  /* width is driven per-frame by JS; no transition needed */
+}
+
+.progress__times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.2vh;
+  font-size: 2.2vh;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+/* ------------------------------------------------------------
+   Player badge (room / group / volume)
+   ------------------------------------------------------------ */
+
+.player-badge {
+  display: flex;
+  align-items: center;
+  gap: 1.5vw;
+  margin-top: 3.5vh;
+  padding: 1.2vh 2vw;
+  border-radius: 99px;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  font-size: 2.4vh;
+  color: var(--text-dim);
+}
+
+.player-badge__room {
+  display: flex;
+  align-items: center;
+  gap: 0.6vw;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.player-badge__icon {
+  color: var(--accent);
+  font-size: 1.8vh;
+}
+
+.player-badge__group {
+  color: var(--text-faint);
+}
+
+.player-badge__volume {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------
+   Queue column
+   ------------------------------------------------------------ */
+
+.queue {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 3vh 1.8vw;
+  border-radius: var(--radius-xl);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.queue__heading {
+  margin: 0 0 2.5vh;
+  font-size: 2.4vh;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.queue__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+  overflow: hidden; /* TV: show what fits, no scrollbars */
+}
+
+.queue__item {
+  display: flex;
+  align-items: center;
+  gap: 1.2vw;
+  min-width: 0;
+}
+
+.queue__position {
+  flex: none;
+  width: 2.4vh;
+  font-size: 2.2vh;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  text-align: right;
+}
+
+.queue__art {
+  flex: none;
+  width: 7vh;
+  height: 7vh;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0.5vh 1.5vh rgba(0, 0, 0, 0.4);
+}
+
+.queue__art--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3vh;
+  color: var(--text-faint);
+  background: var(--surface);
+}
+
+.queue__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.4vh;
+}
+
+.queue__title {
+  font-size: 2.4vh;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue__artist {
+  font-size: 2vh;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1vh;
+  color: var(--text-faint);
+}
+
+.queue__empty-icon {
+  font-size: 7vh;
+  opacity: 0.4;
+}
+
+.queue__empty-title {
+  margin: 0;
+  font-size: 2.8vh;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.queue__empty-hint {
+  margin: 0;
+  font-size: 2.1vh;
+  max-width: 18vw;
+  line-height: 1.4;
+}
+
+/* ------------------------------------------------------------
+   Fullscreen state screens (error / idle / connecting / status)
+   ------------------------------------------------------------ */
+
+.state-screen {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(29, 185, 84, 0.07), transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(80, 80, 255, 0.06), transparent 50%),
+    var(--bg);
+}
+
+.state-screen__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2vh;
+  max-width: 70vw;
+  padding: 6vh 5vw;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(30px);
+  animation: fade-in 0.5s ease both;
+}
+
+.state-screen__icon {
+  font-size: 9vh;
+  line-height: 1;
+  color: var(--danger);
+}
+
+.state-screen__icon--idle {
+  color: var(--text-faint);
+}
+
+.state-screen__title {
+  margin: 0;
+  font-size: 5.5vh;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.state-screen__subtitle {
+  margin: 0;
+  font-size: 2.8vh;
+  color: var(--text-dim);
+}
+
+.state-screen__subtitle code {
+  font-size: 2.5vh;
+  padding: 0.3vh 0.6vw;
+  border-radius: 0.6vmin;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.state-screen__detail {
+  margin: 0;
+  font-size: 2.1vh;
+  color: var(--text-faint);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  max-width: 55vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.state-screen__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.8vw;
+  margin: 1vh 0 0;
+  font-size: 2.3vh;
+  color: var(--text-dim);
+}
+
+.state-screen__pulse {
+  width: 1.4vh;
+  height: 1.4vh;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------
+   Debug page
+   ------------------------------------------------------------ */
+
+.debug {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 4vh 4vw;
+  cursor: auto;
+  font-size: 2.2vh;
+}
+
+.debug__heading {
+  margin: 0 0 3vh;
+  font-size: 4.5vh;
+  font-weight: 800;
+}
+
+.debug__section {
+  margin-bottom: 3.5vh;
+  padding: 2.5vh 2vw;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.debug__section h2 {
+  margin: 0 0 2vh;
+  font-size: 2.6vh;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.debug__grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 1.2vh 2.5vw;
+  margin: 0;
+}
+
+.debug__grid dt {
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.debug__grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.debug code {
+  padding: 0.2vh 0.5vw;
+  border-radius: 0.5vmin;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.95em;
+}
+
+.debug__note {
+  color: var(--text-faint);
+  font-size: 0.9em;
+}
+
+.debug__status {
+  padding: 0.3vh 1vw;
+  border-radius: 99px;
+  background: var(--surface-strong);
+  font-weight: 600;
+}
+
+.debug__status--ok {
+  background: rgba(29, 185, 84, 0.2);
+  color: #4ade80;
+}
+
+.debug__status--warn {
+  background: rgba(250, 200, 80, 0.18);
+  color: #fbbf24;
+}
+
+.debug__status--offline {
+  background: rgba(242, 85, 85, 0.18);
+  color: var(--danger);
+}
+
+.debug__error {
+  color: var(--danger);
+}
+
+.debug__json {
+  margin: 0;
+  padding: 2vh 1.5vw;
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.45);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 1.9vh;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 50vh;
+  overflow-y: auto;
+}
