@@ -81,7 +81,11 @@ install_go() {
     fi
     local arch ver
     arch=$(dpkg --print-architecture) # amd64 / arm64
-    ver=$(curl -fsSL 'https://go.dev/VERSION?text=1' | head -1) # e.g. go1.24.6
+    # Returns "go1.24.6\ntime …" — keep the first line. (No `| head -1`:
+    # head closing the pipe early makes curl exit 23 under pipefail.)
+    ver=$(curl -fsSL 'https://go.dev/VERSION?m=text')
+    ver=${ver%%$'\n'*}
+    case "$ver" in go[0-9]*) ;; *) fail "could not determine latest Go version (got: ${ver:0:40})" ;; esac
     log "Installing Go $ver ($arch)"
     curl -fsSL "https://go.dev/dl/${ver}.linux-${arch}.tar.gz" -o /tmp/go.tgz
     rm -rf /usr/local/go
