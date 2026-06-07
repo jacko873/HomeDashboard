@@ -17,7 +17,7 @@ Inside a fresh Debian or Ubuntu container:
 
 ```bash
 apt-get update && apt-get install -y git
-git clone https://github.com/<you>/HomeDashboard.git
+git clone https://github.com/jacko873/HomeDashboard.git
 cd HomeDashboard
 cp .env.example .env   # optional: Sonos/Spotify settings, port, default player
 ./deploy/install.sh
