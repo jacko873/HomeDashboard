@@ -85,6 +85,15 @@ func TestHealth(t *testing.T) {
 	}
 }
 
+func TestServiceIndex(t *testing.T) {
+	for _, url := range []string{"/", "/api", "/api/"} {
+		rec := get(t, newTestHandler(), url)
+		if rec.Code != http.StatusOK {
+			t.Errorf("%s: status = %d, want 200", url, rec.Code)
+		}
+	}
+}
+
 func TestUnknownEndpointIsJSON404(t *testing.T) {
 	rec := get(t, newTestHandler(), "/api/nope")
 	if rec.Code != http.StatusNotFound {

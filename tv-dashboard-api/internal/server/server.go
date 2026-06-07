@@ -28,8 +28,10 @@ func New(cfg config.Config, log *slog.Logger, version string) http.Handler {
 	system.Register(mux, version)
 	music.Register(mux, musicProvider(cfg, log), cfg.DefaultPlayer, cfg.PublicBaseURL)
 
-	// --- service root + JSON 404 for everything else ----------------------
-	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, _ *http.Request) {
+	// --- service index + JSON 404 for everything else ---------------------
+	// The index answers on /, /api and /api/ — behind the deploy's nginx
+	// only /api… reaches this service (/ serves the frontend).
+	index := func(w http.ResponseWriter, _ *http.Request) {
 		httpx.JSON(w, http.StatusOK, map[string]any{
 			"service": "tv-dashboard-api",
 			"version": version,
@@ -41,7 +43,10 @@ func New(cfg config.Config, log *slog.Logger, version string) http.Handler {
 				"GET /healthz",
 			},
 		})
-	})
+	}
+	mux.HandleFunc("GET /{$}", index)
+	mux.HandleFunc("GET /api", index)
+	mux.HandleFunc("GET /api/{$}", index)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusNotFound, "not_found", "no such endpoint: "+r.URL.Path)
 	})
