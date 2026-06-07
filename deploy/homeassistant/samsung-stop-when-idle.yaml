@@ -1,0 +1,15 @@
+# Samsung Tizen TV variant: turn the TV off once the Living Room has been
+# quiet for a while. Companion to samsung-cast-dashboard-on-play.yaml.
+alias: "Turn off Samsung TV when Living Room music stops"
+triggers:
+  - trigger: state
+    entity_id: media_player.living_room
+    to:
+      - "paused"
+      - "idle"
+    for: "00:05:00" # been quiet for 5 minutes
+actions:
+  - action: media_player.turn_off
+    target:
+      entity_id: media_player.samsung_tv
+mode: restart # re-arms the 5-minute timer if music resumes in between

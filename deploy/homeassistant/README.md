@@ -3,10 +3,21 @@
 Cast the dashboard to the TV automatically when music starts, and turn the
 TV off again when the room goes quiet.
 
+Pick the pair that matches your TV:
+
+**Chromecast / Google Cast** (DashCast):
+
 | File | What it does |
 | --- | --- |
 | [cast-dashboard-on-play.yaml](cast-dashboard-on-play.yaml) | Sonos starts playing → show `http://10.0.0.4/music?player=living_room` on the TV |
 | [stop-cast-when-idle.yaml](stop-cast-when-idle.yaml) | 5 minutes of silence → turn the TV off |
+
+**Samsung Tizen TV** (requires the `samsungtv_smart` HACS integration):
+
+| File | What it does |
+| --- | --- |
+| [samsung-cast-dashboard-on-play.yaml](samsung-cast-dashboard-on-play.yaml) | Sonos starts playing → open the dashboard in the Samsung TV browser |
+| [samsung-stop-when-idle.yaml](samsung-stop-when-idle.yaml) | 5 minutes of silence → turn the TV off |
 
 ## Setup
 
@@ -22,6 +33,31 @@ TV off again when the room goes quiet.
 Test the cast action first via **Developer Tools → Actions** →
 `media_player.play_media` with the same `data` block — quicker than waiting
 for the trigger.
+
+## Samsung Tizen TVs
+
+Use the `samsungtv_smart` **custom** integration (install via HACS) — the
+core `samsungtv` integration can't open a URL. It adds a `browser`
+media type, so the dashboard opens in the TV's built-in web browser:
+
+```yaml
+actions:
+  - action: media_player.play_media
+    target:
+      entity_id: media_player.samsung_tv
+    data:
+      media_content_type: browser
+      media_content_id: "http://10.0.0.4/music?player=living_room"
+```
+
+Notes specific to Samsung:
+
+- The TV must be **on** before launching the browser; the example turns it
+  on and waits 5s first. If it's slow to wake, increase the `delay`.
+- First time, Tizen may prompt on-screen to allow the connection — accept
+  it (and consider enabling "auto" in the integration options).
+- The TV remembers the last page, so a plain `media_player.turn_on` later
+  usually reopens the dashboard.
 
 ## Caveat: DashCast and plain HTTP
 

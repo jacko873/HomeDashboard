@@ -1,0 +1,42 @@
+# Samsung Tizen TV variant: open the Now Playing dashboard in the TV's
+# built-in web browser when the Living Room Sonos starts playing.
+#
+# Requires the `samsungtv_smart` custom integration (HACS), which adds the
+# "browser" media_content_type used below. (The core `samsungtv` integration
+# does NOT support opening a URL — install samsungtv_smart for this.)
+#
+# Adjust before use:
+#   - media_player.living_room      -> your Sonos player entity
+#   - media_player.samsung_tv       -> your samsungtv_smart entity
+#   - the dashboard URL/IP and ?player= for your setup
+alias: "Open dashboard on Samsung TV when Living Room plays"
+description: >-
+  When the Living Room Sonos starts playing, open the music dashboard in the
+  Samsung TV browser.
+triggers:
+  - trigger: state
+    entity_id: media_player.living_room
+    to: "playing"
+    for: "00:00:03" # debounce track-change blips
+conditions:
+  # Only take over the TV when it isn't already showing something else.
+  # Remove this block if the dashboard should always take over.
+  - condition: state
+    entity_id: media_player.samsung_tv
+    state:
+      - "off"
+      - "idle"
+      - "unavailable"
+actions:
+  # Make sure the TV is on, then give Tizen a moment before launching.
+  - action: media_player.turn_on
+    target:
+      entity_id: media_player.samsung_tv
+  - delay: "00:00:05"
+  - action: media_player.play_media
+    target:
+      entity_id: media_player.samsung_tv
+    data:
+      media_content_type: browser
+      media_content_id: "http://10.0.0.4/music?player=living_room"
+mode: single
