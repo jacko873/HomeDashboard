@@ -49,7 +49,9 @@ type sonosReader interface {
 
 type spotifyFetcher interface {
 	Enabled() bool
+	UserAuthorized() bool
 	GetTrack(ctx context.Context, id string) (spotify.Track, error)
+	GetQueue(ctx context.Context) ([]spotify.Track, error)
 }
 
 type SonosProviderOptions struct {
@@ -143,7 +145,19 @@ type poller struct {
 	lastGood      *NowPlaying // last response built from a fresh Sonos read
 	lastGoodAt    time.Time
 	refreshing    bool
+
+	// Spotify Connect queue cache — only touched by refresh() (single
+	// refresher at a time), so not guarded by mu.
+	scQueue      []QueueItem
+	scQueueAt    time.Time
+	scQueueErrAt time.Time
 }
+
+const (
+	scQueueTTL    = 20 * time.Second // refresh window for the Connect queue
+	scQueueErrTTL = time.Minute      // back-off after a failed queue fetch
+	scQueueMax    = 8                // matches the on-screen "Up Next" list
+)
 
 func (pl *poller) touch() {
 	pl.mu.Lock()
@@ -241,6 +255,19 @@ func (pl *poller) refresh(ctx context.Context) {
 	// Best-effort queue artwork from already-cached tracks (never fetches).
 	pl.enrichQueueFromCache(&np, snap)
 
+	// Spotify Connect: the queue lives in Spotify's cloud, not on the Sonos.
+	// When Sonos reports none and the source is Spotify, serve the user's
+	// Connect queue instead (cached — never fetched every poll).
+	if len(np.Queue) == 0 && np.State == StatePlaying &&
+		np.Source != nil && np.Source.Provider == "spotify" &&
+		p.spotify != nil && p.spotify.Enabled() && p.spotify.UserAuthorized() {
+		if q, fromCache := pl.spotifyConnectQueue(ctx); len(q) > 0 {
+			np.Queue = q
+			enriched = true
+			cached = cached || fromCache
+		}
+	}
+
 	np.DataQuality = &DataQuality{
 		SonosFresh:      true,
 		SpotifyEnriched: enriched,
@@ -281,6 +308,39 @@ func (pl *poller) normalize(snap sonos.Snapshot) NowPlaying {
 	}
 	np.Source = sourceFor(snap.TrackURI)
 	return np
+}
+
+// spotifyConnectQueue returns the user's Spotify queue, refreshed at most
+// every scQueueTTL (with a longer back-off after errors). fromCache reports
+// whether a live Spotify call was avoided.
+func (pl *poller) spotifyConnectQueue(ctx context.Context) (items []QueueItem, fromCache bool) {
+	if time.Since(pl.scQueueAt) < scQueueTTL {
+		return pl.scQueue, true
+	}
+	if time.Since(pl.scQueueErrAt) < scQueueErrTTL {
+		return pl.scQueue, true // serve stale data while backing off
+	}
+
+	p := pl.provider
+	tracks, err := p.spotify.GetQueue(ctx)
+	if err != nil {
+		pl.scQueueErrAt = time.Now()
+		if !errors.Is(err, spotify.ErrCoolingDown) {
+			p.log.Warn("spotify queue fetch failed", "player", pl.player, "error", err)
+		}
+		return pl.scQueue, true
+	}
+
+	items = make([]QueueItem, 0, min(len(tracks), scQueueMax))
+	for _, t := range tracks {
+		if len(items) == scQueueMax {
+			break
+		}
+		items = append(items, QueueItem{Title: t.Title, Artist: t.Artist, ArtworkURL: t.ArtworkURL})
+	}
+	pl.scQueue, pl.scQueueAt = items, time.Now()
+	pl.scQueueErrAt = time.Time{}
+	return items, false
 }
 
 func (pl *poller) enrichQueueFromCache(np *NowPlaying, snap sonos.Snapshot) {

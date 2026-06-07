@@ -105,6 +105,40 @@ you whether it came from a `SONOS_PLAYER_*` mapping or was derived). The
 room names are the same ones shown in the Sonos app under
 **Settings → System**.
 
+### Spotify Connect queue (optional)
+
+When you cast to Sonos **from the Spotify app** (Spotify Connect), the queue
+lives in Spotify's cloud — Sonos reports none. With *user authorization* the
+API fills the gap from Spotify's `/me/player/queue` (cached ~20s, never
+fetched per poll). This needs a one-time login that yields a
+`SPOTIFY_REFRESH_TOKEN`:
+
+1. In your [Spotify app settings](https://developer.spotify.com/dashboard),
+   add this **Redirect URI** (loopback is the only plain-HTTP redirect
+   Spotify accepts):
+
+   ```
+   http://127.0.0.1:8080/api/music/spotify/callback
+   ```
+
+2. From your laptop, tunnel to the API and open the login URL:
+
+   ```bash
+   ssh -L 8080:127.0.0.1:8080 root@<container>
+   # then in the browser:  http://127.0.0.1:8080/api/music/spotify/login
+   ```
+
+3. Approve in Spotify. The callback page shows the
+   `SPOTIFY_REFRESH_TOKEN=…` line to add to `/etc/tv-dashboard/api.env`,
+   then `systemctl restart tv-dashboard-api`. (The running service adopts
+   the token immediately, so the queue works even before the restart —
+   persisting it just makes it survive restarts.)
+
+Note: the Connect queue is the **account's** active queue, not per-room —
+on a one-account household that's exactly what you expect. Queue playback
+started from the Sonos app needs none of this; that queue comes from Sonos
+directly.
+
 ### Demo music provider scenarios
 
 With `MUSIC_PROVIDER=demo`, the `player` query parameter selects a scenario:

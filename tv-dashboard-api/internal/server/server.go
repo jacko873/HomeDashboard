@@ -26,7 +26,9 @@ func New(cfg config.Config, log *slog.Logger, version string) http.Handler {
 
 	// --- API modules ------------------------------------------------------
 	system.Register(mux, version)
-	music.Register(mux, musicProvider(cfg, log), cfg.DefaultPlayer, cfg.PublicBaseURL)
+	spotifyClient := spotify.New(cfg.SpotifyClientID, cfg.SpotifyClientSecret,
+		cfg.SpotifyRefreshToken, cfg.SpotifyRateLimitCooldown)
+	music.Register(mux, musicProvider(cfg, log, spotifyClient), cfg.DefaultPlayer, cfg.PublicBaseURL, spotifyClient)
 
 	// --- service index + JSON 404 for everything else ---------------------
 	// The index answers on /, /api and /api/ — behind the deploy's nginx
@@ -58,16 +60,15 @@ func New(cfg config.Config, log *slog.Logger, version string) http.Handler {
 	)
 }
 
-func musicProvider(cfg config.Config, log *slog.Logger) music.Provider {
+func musicProvider(cfg config.Config, log *slog.Logger, spotifyClient *spotify.Client) music.Provider {
 	switch cfg.MusicProvider {
 	case "", "sonos":
-		spotifyClient := spotify.New(cfg.SpotifyClientID, cfg.SpotifyClientSecret,
-			cfg.SpotifyRefreshToken, cfg.SpotifyRateLimitCooldown)
 		log.Info("music provider: sonos",
 			"players", cfg.SonosPlayers,
 			"seedHosts", cfg.SonosHosts,
 			"pollInterval", cfg.SonosPollInterval,
 			"spotifyEnrichment", spotifyClient.Enabled(),
+			"spotifyUserAuth", spotifyClient.UserAuthorized(),
 		)
 		return music.NewSonosProvider(sonos.New(cfg.SonosHosts), music.SonosProviderOptions{
 			Players:            cfg.SonosPlayers,

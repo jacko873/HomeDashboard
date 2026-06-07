@@ -1,12 +1,15 @@
 package music
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"tv-dashboard-api/internal/httpx"
+	"tv-dashboard-api/internal/spotify"
 )
 
 type handler struct {
@@ -17,13 +20,18 @@ type handler struct {
 	// means derive from the request (works everywhere except behind
 	// path-stripping proxies).
 	publicBaseURL string
+	// spotify is used only by the one-time authorization helper endpoints;
+	// nil when Spotify is unconfigured.
+	spotify *spotify.Client
 }
 
 // Register mounts the music module's routes on mux.
-func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseURL string) {
-	h := &handler{provider: provider, defaultPlayer: defaultPlayer, publicBaseURL: publicBaseURL}
+func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseURL string, sp *spotify.Client) {
+	h := &handler{provider: provider, defaultPlayer: defaultPlayer, publicBaseURL: publicBaseURL, spotify: sp}
 	mux.HandleFunc("GET /api/music/now-playing", h.nowPlaying)
 	mux.HandleFunc("GET /api/music/art/{hue}", h.art)
+	mux.HandleFunc("GET /api/music/spotify/login", h.spotifyLogin)
+	mux.HandleFunc("GET /api/music/spotify/callback", h.spotifyCallback)
 	if lister, ok := provider.(PlayerLister); ok {
 		mux.HandleFunc("GET /api/music/players", func(w http.ResponseWriter, r *http.Request) {
 			players, err := lister.Players(r.Context())
@@ -37,6 +45,77 @@ func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseUR
 			httpx.JSON(w, http.StatusOK, map[string]any{"players": players})
 		})
 	}
+}
+
+// ---------------------------------------------------------------------------
+// One-time Spotify user authorization. Yields the SPOTIFY_REFRESH_TOKEN that
+// unlocks /me/… endpoints (the Spotify Connect queue). Spotify only allows
+// loopback redirect URIs over plain HTTP, so this is designed to be used
+// through an SSH tunnel — see the README.
+
+const stateCookie = "spotify_auth_state"
+
+func (h *handler) spotifyLogin(w http.ResponseWriter, r *http.Request) {
+	if !h.spotify.Enabled() {
+		httpx.Error(w, http.StatusConflict, "spotify_not_configured",
+			"set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET first")
+		return
+	}
+	buf := make([]byte, 16)
+	_, _ = rand.Read(buf)
+	state := hex.EncodeToString(buf)
+	http.SetCookie(w, &http.Cookie{
+		Name: stateCookie, Value: state, Path: "/api/music/spotify",
+		MaxAge: 600, HttpOnly: true, SameSite: http.SameSiteLaxMode,
+	})
+	http.Redirect(w, r, h.spotify.AuthorizeURL(h.redirectURI(r), state), http.StatusFound)
+}
+
+func (h *handler) spotifyCallback(w http.ResponseWriter, r *http.Request) {
+	if !h.spotify.Enabled() {
+		httpx.Error(w, http.StatusConflict, "spotify_not_configured", "spotify is not configured")
+		return
+	}
+	if errParam := r.URL.Query().Get("error"); errParam != "" {
+		httpx.Error(w, http.StatusBadRequest, "spotify_denied", "authorization failed: "+errParam)
+		return
+	}
+	cookie, err := r.Cookie(stateCookie)
+	if err != nil || cookie.Value == "" || cookie.Value != r.URL.Query().Get("state") {
+		httpx.Error(w, http.StatusBadRequest, "bad_state", "state mismatch — start again at /api/music/spotify/login")
+		return
+	}
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		httpx.Error(w, http.StatusBadRequest, "missing_code", "no authorization code in callback")
+		return
+	}
+
+	refreshToken, err := h.spotify.ExchangeCode(r.Context(), code, h.redirectURI(r))
+	if err != nil {
+		httpx.Error(w, http.StatusBadGateway, "exchange_failed", err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	fmt.Fprintf(w, `Spotify authorized!
+
+The running service has adopted the token already — the Spotify Connect
+queue works right now. To make it survive restarts, persist it:
+
+  1. Add this line to /etc/tv-dashboard/api.env:
+
+     SPOTIFY_REFRESH_TOKEN=%s
+
+  2. systemctl restart tv-dashboard-api
+`, refreshToken)
+}
+
+// redirectURI must match what is registered in the Spotify app settings,
+// e.g. http://127.0.0.1:8080/api/music/spotify/callback (loopback HTTP is
+// the only non-HTTPS redirect Spotify accepts).
+func (h *handler) redirectURI(r *http.Request) string {
+	return h.baseURL(r) + "/api/music/spotify/callback"
 }
 
 func (h *handler) nowPlaying(w http.ResponseWriter, r *http.Request) {

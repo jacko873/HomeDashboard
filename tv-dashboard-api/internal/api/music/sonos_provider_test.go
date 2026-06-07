@@ -36,18 +36,30 @@ func (f *fakeSonos) Rooms(context.Context) ([][]string, error) {
 }
 
 type fakeSpotify struct {
-	mu    sync.Mutex
-	track spotify.Track
-	err   error
-	calls int
+	mu         sync.Mutex
+	track      spotify.Track
+	err        error
+	calls      int
+	userAuth   bool
+	queue      []spotify.Track
+	queueErr   error
+	queueCalls int
 }
 
-func (f *fakeSpotify) Enabled() bool { return true }
+func (f *fakeSpotify) Enabled() bool        { return true }
+func (f *fakeSpotify) UserAuthorized() bool { return f.userAuth }
 func (f *fakeSpotify) GetTrack(context.Context, string) (spotify.Track, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.calls++
 	return f.track, f.err
+}
+
+func (f *fakeSpotify) GetQueue(context.Context) ([]spotify.Track, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.queueCalls++
+	return f.queue, f.queueErr
 }
 
 func newTestProvider(s sonosReader, sp spotifyFetcher) *SonosProvider {
@@ -130,6 +142,52 @@ func TestSpotifyEnrichmentFillsGapsAndCaches(t *testing.T) {
 	}
 	if dq := np.DataQuality; !dq.SpotifyEnriched || !dq.SpotifyCached {
 		t.Errorf("second enrichment dataQuality = %+v, want cached", dq)
+	}
+}
+
+func TestSpotifyConnectQueueFillsEmptySonosQueue(t *testing.T) {
+	// Spotify Connect session: complete metadata, no Sonos queue, vli URI.
+	connect := playingSnap
+	connect.Queue = nil
+	connect.TrackURI = "x-sonos-vli:RINCON_AAA:2,spotify:31f64420a0e0"
+	sp := &fakeSpotify{
+		userAuth: true,
+		queue: []spotify.Track{
+			{Title: "Next Up", Artist: "Someone", ArtworkURL: "https://i.scdn.co/q1.jpg"},
+			{Title: "After That", Artist: "Someone Else"},
+		},
+	}
+	p := newTestProvider(&fakeSonos{snap: connect}, sp)
+
+	np, err := p.NowPlaying(t.Context(), "living_room")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(np.Queue) != 2 || np.Queue[0].Title != "Next Up" {
+		t.Fatalf("queue = %+v, want spotify connect queue", np.Queue)
+	}
+	if !np.DataQuality.SpotifyEnriched {
+		t.Error("queue from spotify should mark spotifyEnriched")
+	}
+
+	// Repeat polls within the TTL must not call Spotify again.
+	p.pollers["living_room"].refresh(t.Context())
+	p.pollers["living_room"].refresh(t.Context())
+	if sp.queueCalls != 1 {
+		t.Errorf("queue calls = %d, want 1 (cached between polls)", sp.queueCalls)
+	}
+}
+
+func TestSpotifyConnectQueueSkippedWithoutUserAuth(t *testing.T) {
+	connect := playingSnap
+	connect.Queue = nil
+	connect.TrackURI = "x-sonos-vli:RINCON_AAA:2,spotify:31f64420a0e0"
+	sp := &fakeSpotify{userAuth: false, queue: []spotify.Track{{Title: "x"}}}
+	p := newTestProvider(&fakeSonos{snap: connect}, sp)
+
+	np, _ := p.NowPlaying(t.Context(), "living_room")
+	if len(np.Queue) != 0 || sp.queueCalls != 0 {
+		t.Errorf("queue = %+v calls=%d, want untouched without user auth", np.Queue, sp.queueCalls)
 	}
 }
 
