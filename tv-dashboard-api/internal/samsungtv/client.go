@@ -3,13 +3,10 @@ package samsungtv
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -46,44 +43,8 @@ func (c *Client) GetToken(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("Samsung TV host not configured")
 	}
 
-	// Generate a unique ID for this client
-	b := make([]byte, 16)
-	rand.Read(b)
-	deviceId := base64.URLEncoding.EncodeToString(b)
-
-	// Build the pairing URL
-	params := url.Values{}
-	params.Set("name", base64.StdEncoding.EncodeToString([]byte(c.name)))
-	params.Set("device_id", deviceId)
-	
-	pairingURL := fmt.Sprintf("http://%s:8001/api/v2/channels/samsung.remote.control?%s", 
-		c.host, params.Encode())
-
-	req, err := http.NewRequestWithContext(ctx, "GET", pairingURL, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to create pairing request: %w", err)
-	}
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("failed to connect to TV (make sure TV is on): %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, _ := io.ReadAll(resp.Body)
-	
-	// Parse response to get token
-	var result map[string]interface{}
-	if err := json.Unmarshal(body, &result); err == nil {
-		if data, ok := result["data"].(map[string]interface{}); ok {
-			if token, ok := data["token"].(string); ok && token != "" {
-				return token, nil
-			}
-		}
-	}
-
-	// If no token in response, user needs to accept on TV
-	return "", fmt.Errorf("pairing required - please accept the connection on your TV and try again")
+	// Use WebSocket pairing
+	return c.PairWithTV(ctx)
 }
 
 func (c *Client) OpenBrowser(ctx context.Context, targetURL string) error {
@@ -91,17 +52,22 @@ func (c *Client) OpenBrowser(ctx context.Context, targetURL string) error {
 		return fmt.Errorf("Samsung TV not configured")
 	}
 
-	// Method 1: Try using the Web API (newer TVs)
+	// Method 1: Try WebSocket method (most reliable)
+	if err := c.OpenBrowserWS(ctx, targetURL); err == nil {
+		return nil
+	}
+
+	// Method 2: Try using the Web API (newer TVs)
 	if err := c.openBrowserWebAPI(ctx, targetURL); err == nil {
 		return nil
 	}
 
-	// Method 2: Try using SmartThings API approach
+	// Method 3: Try using SmartThings API approach
 	if err := c.openBrowserSmartView(ctx, targetURL); err == nil {
 		return nil
 	}
 
-	// Method 3: Try legacy approach
+	// Method 4: Try legacy approach
 	return c.openBrowserLegacy(ctx, targetURL)
 }
 
@@ -156,7 +122,6 @@ func (c *Client) openBrowserSmartView(ctx context.Context, targetURL string) err
 	apiURL := fmt.Sprintf("http://%s:8002/api/v2/", c.host)
 	
 	payload := map[string]interface{}{
-		"id":     generateID(),
 		"method": "ms.browser.launch",
 		"params": map[string]interface{}{
 			"url": targetURL,
@@ -259,8 +224,3 @@ func (c *Client) TurnOn(ctx context.Context) error {
 	return nil
 }
 
-func generateID() string {
-	b := make([]byte, 8)
-	rand.Read(b)
-	return base64.URLEncoding.EncodeToString(b)
-}

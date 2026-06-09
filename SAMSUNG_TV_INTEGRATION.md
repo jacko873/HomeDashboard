@@ -11,9 +11,20 @@ This integration allows automatic control of Samsung Smart TVs to open the music
 
 ## Initial Setup - TV Pairing
 
-Samsung TVs require authentication for security. Follow these steps:
+Samsung TVs require authentication for security. We provide an automated pairing script or you can do it manually.
 
-### Step 1: Configure TV Host
+### Option 1: Automated Pairing (Recommended)
+```bash
+sudo ./deploy/pair-samsung-tv.sh
+```
+This script will:
+- Guide you through the pairing process
+- Automatically save the token
+- Test the connection
+
+### Option 2: Manual Pairing
+
+#### Step 1: Configure TV Host
 Add your TV's IP address to `/etc/tv-dashboard/api.env`:
 ```bash
 SAMSUNG_TV_HOST=192.168.1.100
@@ -24,18 +35,21 @@ Then restart the service:
 sudo systemctl restart tv-dashboard-api
 ```
 
-### Step 2: Pair with Your TV
+#### Step 2: Pair with Your TV
 1. Make sure your TV is turned on
 2. Run the pairing command:
 ```bash
 curl -X POST http://localhost:8080/api/music/tv/pair
 ```
-3. A dialog will appear on your TV asking for permission
-4. Use your TV remote to select "Allow"
-5. Run the command again to get the token
+3. **IMPORTANT**: A dialog will appear on your TV asking for permission
+4. Use your TV remote to select "Allow" or "Accept"
+5. Run the command again to get the token:
+```bash
+curl -X POST http://localhost:8080/api/music/tv/pair | python3 -m json.tool
+```
 6. You'll receive a response with the token
 
-### Step 3: Save the Token
+#### Step 3: Save the Token
 Add the token to `/etc/tv-dashboard/api.env`:
 ```bash
 SAMSUNG_TV_HOST=192.168.1.100
