@@ -7,7 +7,7 @@
 #
 # Adjust before use:
 #   - media_player.living_room      -> your Sonos player entity
-#   - media_player.samsung_tv       -> your samsungtv_smart entity
+#   - media_player.hub_85_the_frame       -> your samsungtv_smart entity
 #   - the dashboard URL/IP and ?player= for your setup
 alias: "Open dashboard on Samsung TV when Living Room plays"
 description: >-
@@ -22,7 +22,7 @@ conditions:
   # Only take over the TV when it isn't already showing something else.
   # Remove this block if the dashboard should always take over.
   - condition: state
-    entity_id: media_player.samsung_tv
+    entity_id: media_player.hub_85_the_frame
     state:
       - "off"
       - "idle"
@@ -31,11 +31,11 @@ actions:
   # Make sure the TV is on, then give Tizen a moment before launching.
   - action: media_player.turn_on
     target:
-      entity_id: media_player.samsung_tv
+      entity_id: media_player.hub_85_the_frame
   - delay: "00:00:05"
   - action: media_player.play_media
     target:
-      entity_id: media_player.samsung_tv
+      entity_id: media_player.hub_85_the_frame
     data:
       media_content_type: browser
       media_content_id: "http://10.0.0.4/music?player=living_room"

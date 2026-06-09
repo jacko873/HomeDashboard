@@ -1,0 +1,10 @@
+[Unit]
+Description=Run TV Dashboard Watchdog every 5 minutes
+Requires=tv-dashboard-watchdog.service
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

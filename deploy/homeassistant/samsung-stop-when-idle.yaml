@@ -11,5 +11,5 @@ triggers:
 actions:
   - action: media_player.turn_off
     target:
-      entity_id: media_player.samsung_tv
+      entity_id: media_player.hub_85_the_frame
 mode: restart # re-arms the 5-minute timer if music resumes in between

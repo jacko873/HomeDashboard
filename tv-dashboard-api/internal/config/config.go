@@ -51,6 +51,10 @@ type Config struct {
 	// SpotifyRateLimitCooldown pauses all Spotify calls after a 429
 	// (extended to Retry-After when that is longer).
 	SpotifyRateLimitCooldown time.Duration
+
+	// Samsung TV configuration for browser control
+	SamsungTVHost string
+	SamsungTVDashboardURL string
 }
 
 func FromEnv() Config {
@@ -71,6 +75,9 @@ func FromEnv() Config {
 		SpotifyCacheTTL:          getduration("SPOTIFY_CACHE_TTL", 24*time.Hour),
 		SpotifyNegativeCacheTTL:  getduration("SPOTIFY_NEGATIVE_CACHE_TTL", 10*time.Minute),
 		SpotifyRateLimitCooldown: getduration("SPOTIFY_RATE_LIMIT_COOLDOWN", 5*time.Minute),
+
+		SamsungTVHost:         os.Getenv("SAMSUNG_TV_HOST"),
+		SamsungTVDashboardURL: getenv("SAMSUNG_TV_DASHBOARD_URL", "https://tvdashboard.home.thecasualbot.com/music"),
 	}
 }
 

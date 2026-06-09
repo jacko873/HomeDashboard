@@ -23,15 +23,26 @@ type handler struct {
 	// spotify is used only by the one-time authorization helper endpoints;
 	// nil when Spotify is unconfigured.
 	spotify *spotify.Client
+	// samsungTV is used for TV browser control; nil when unconfigured.
+	samsungTV *SamsungTVController
 }
 
 // Register mounts the music module's routes on mux.
-func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseURL string, sp *spotify.Client) {
-	h := &handler{provider: provider, defaultPlayer: defaultPlayer, publicBaseURL: publicBaseURL, spotify: sp}
+func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseURL string, sp *spotify.Client, tvHost, tvDashboardURL string) *TVAutomation {
+	h := &handler{
+		provider:      provider,
+		defaultPlayer: defaultPlayer,
+		publicBaseURL: publicBaseURL,
+		spotify:       sp,
+		samsungTV:     NewSamsungTVController(tvHost, tvDashboardURL, defaultPlayer),
+	}
 	mux.HandleFunc("GET /api/music/now-playing", h.nowPlaying)
 	mux.HandleFunc("GET /api/music/art/{hue}", h.art)
 	mux.HandleFunc("GET /api/music/spotify/login", h.spotifyLogin)
 	mux.HandleFunc("GET /api/music/spotify/callback", h.spotifyCallback)
+	if h.samsungTV != nil && h.samsungTV.Enabled() {
+		mux.HandleFunc("POST /api/music/tv/open-browser", h.samsungTV.HandleOpenBrowser)
+	}
 	if lister, ok := provider.(PlayerLister); ok {
 		mux.HandleFunc("GET /api/music/players", func(w http.ResponseWriter, r *http.Request) {
 			players, err := lister.Players(r.Context())
@@ -45,6 +56,12 @@ func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseUR
 			httpx.JSON(w, http.StatusOK, map[string]any{"players": players})
 		})
 	}
+	
+	// Return TV automation for optional start
+	if h.samsungTV != nil && h.samsungTV.Enabled() {
+		return NewTVAutomation(provider, h.samsungTV, defaultPlayer, nil)
+	}
+	return nil
 }
 
 // ---------------------------------------------------------------------------

@@ -21,6 +21,15 @@ fail() { echo -e "\e[1;31mERROR:\e[0m $*" >&2; exit 1; }
 export PATH=$PATH:/usr/local/go/bin
 command -v go >/dev/null || fail "Go not found — run deploy/install.sh first"
 
+# Update samsung-tv-ws-api if installed
+if command -v samsung-tv-ws-api >/dev/null 2>&1; then
+    log "Updating samsung-tv-ws-api"
+    npm update -g samsung-tv-ws-api >/dev/null 2>&1 || true
+elif [ -d "$APP_DIR/samsung-tv" ]; then
+    log "Updating samsung-tv-ws-api (local)"
+    (cd "$APP_DIR/samsung-tv" && npm update samsung-tv-ws-api >/dev/null 2>&1) || true
+fi
+
 SRC_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$SRC_DIR"
 

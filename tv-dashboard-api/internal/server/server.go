@@ -28,7 +28,17 @@ func New(cfg config.Config, log *slog.Logger, version string) http.Handler {
 	system.Register(mux, version)
 	spotifyClient := spotify.New(cfg.SpotifyClientID, cfg.SpotifyClientSecret,
 		cfg.SpotifyRefreshToken, cfg.SpotifyRateLimitCooldown)
-	music.Register(mux, musicProvider(cfg, log, spotifyClient), cfg.DefaultPlayer, cfg.PublicBaseURL, spotifyClient)
+	provider := musicProvider(cfg, log, spotifyClient)
+	tvAutomation := music.Register(mux, provider, cfg.DefaultPlayer, cfg.PublicBaseURL, spotifyClient,
+		cfg.SamsungTVHost, cfg.SamsungTVDashboardURL)
+	
+	// Start TV automation if configured
+	if tvAutomation != nil {
+		if cfg.SamsungTVHost != "" {
+			log.Info("Samsung TV automation enabled", "host", cfg.SamsungTVHost, "dashboardURL", cfg.SamsungTVDashboardURL)
+		}
+		// Note: automation will be started from main.go with proper context
+	}
 
 	// --- service index + JSON 404 for everything else ---------------------
 	// The index answers on /, /api and /api/ — behind the deploy's nginx
@@ -41,6 +51,7 @@ func New(cfg config.Config, log *slog.Logger, version string) http.Handler {
 				"GET /api/music/now-playing?player=<player>",
 				"GET /api/music/players",
 				"GET /api/music/art/{hue}",
+				"POST /api/music/tv/open-browser",
 				"GET /api/system/health",
 				"GET /healthz",
 			},

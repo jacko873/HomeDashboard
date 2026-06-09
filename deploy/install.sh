@@ -107,8 +107,18 @@ install_node() {
     apt-get install -y -qq nodejs
 }
 
+install_samsung_tv_api() {
+    log "Installing samsung-tv-ws-api"
+    npm install -g samsung-tv-ws-api >/dev/null 2>&1 || {
+        log "Failed to install samsung-tv-ws-api globally, installing locally"
+        mkdir -p "$APP_DIR/samsung-tv"
+        (cd "$APP_DIR/samsung-tv" && npm init -y >/dev/null 2>&1 && npm install samsung-tv-ws-api >/dev/null 2>&1)
+    }
+}
+
 install_go
 install_node
+install_samsung_tv_api
 export PATH=$PATH:/usr/local/go/bin
 
 # ── 3. get the source ──────────────────────────────────────────────────────
@@ -181,6 +191,10 @@ if [ ! -f $ENV_FILE ]; then
         emit SPOTIFY_CLIENT_ID ""
         emit SPOTIFY_CLIENT_SECRET ""
         emit SPOTIFY_REFRESH_TOKEN ""
+        echo
+        echo "# Samsung TV integration (optional — for browser control):"
+        emit SAMSUNG_TV_HOST ""
+        emit SAMSUNG_TV_DASHBOARD_URL "https://tvdashboard.home.thecasualbot.com/music"
     } > $ENV_FILE
     chmod 600 $ENV_FILE
     log "Created $ENV_FILE (edit it to configure Sonos/Spotify)"
@@ -193,14 +207,17 @@ cat > /etc/systemd/system/$SERVICE.service <<EOF
 Description=TV Dashboard API
 After=network-online.target
 Wants=network-online.target
+StartLimitIntervalSec=0
 
 [Service]
+Type=simple
 User=$SERVICE_USER
 EnvironmentFile=$ENV_FILE
 ExecStart=$APP_DIR/bin/server
 WorkingDirectory=$APP_DIR
-Restart=on-failure
-RestartSec=3
+Restart=always
+RestartSec=10
+StartLimitBurst=5
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
@@ -213,6 +230,15 @@ EOF
 systemctl daemon-reload
 systemctl enable --now $SERVICE
 systemctl restart $SERVICE
+
+# Install watchdog timer to ensure service stays running
+if [ -f "$script_dir/tv-dashboard-watchdog.service" ] && [ -f "$script_dir/tv-dashboard-watchdog.timer" ]; then
+    cp "$script_dir/tv-dashboard-watchdog.service" /etc/systemd/system/
+    cp "$script_dir/tv-dashboard-watchdog.timer" /etc/systemd/system/
+    systemctl daemon-reload
+    systemctl enable --now tv-dashboard-watchdog.timer
+    log "Installed watchdog timer for service monitoring"
+fi
 
 log "Deploying the frontend (nginx on port $HTTP_PORT)"
 mkdir -p $WEB_ROOT
