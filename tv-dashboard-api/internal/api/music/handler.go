@@ -28,13 +28,13 @@ type handler struct {
 }
 
 // Register mounts the music module's routes on mux.
-func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseURL string, sp *spotify.Client, tvHost, tvDashboardURL string) *TVAutomation {
+func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseURL string, sp *spotify.Client, tvHost, tvToken, tvDashboardURL string) *TVAutomation {
 	h := &handler{
 		provider:      provider,
 		defaultPlayer: defaultPlayer,
 		publicBaseURL: publicBaseURL,
 		spotify:       sp,
-		samsungTV:     NewSamsungTVController(tvHost, tvDashboardURL, defaultPlayer),
+		samsungTV:     NewSamsungTVController(tvHost, tvToken, tvDashboardURL, defaultPlayer),
 	}
 	mux.HandleFunc("GET /api/music/now-playing", h.nowPlaying)
 	mux.HandleFunc("GET /api/music/art/{hue}", h.art)
@@ -42,6 +42,7 @@ func Register(mux *http.ServeMux, provider Provider, defaultPlayer, publicBaseUR
 	mux.HandleFunc("GET /api/music/spotify/callback", h.spotifyCallback)
 	if h.samsungTV != nil && h.samsungTV.Enabled() {
 		mux.HandleFunc("POST /api/music/tv/open-browser", h.samsungTV.HandleOpenBrowser)
+		mux.HandleFunc("POST /api/music/tv/pair", h.samsungTV.HandlePairing)
 	}
 	if lister, ok := provider.(PlayerLister); ok {
 		mux.HandleFunc("GET /api/music/players", func(w http.ResponseWriter, r *http.Request) {

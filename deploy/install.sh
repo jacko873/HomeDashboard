@@ -194,6 +194,7 @@ if [ ! -f $ENV_FILE ]; then
         echo
         echo "# Samsung TV integration (optional — for browser control):"
         emit SAMSUNG_TV_HOST ""
+        emit SAMSUNG_TV_TOKEN ""
         emit SAMSUNG_TV_DASHBOARD_URL "https://tvdashboard.home.thecasualbot.com/music"
     } > $ENV_FILE
     chmod 600 $ENV_FILE

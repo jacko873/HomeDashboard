@@ -17,9 +17,9 @@ type SamsungTVController struct {
 	defaultPlayer string
 }
 
-func NewSamsungTVController(host, dashboardURL, defaultPlayer string) *SamsungTVController {
+func NewSamsungTVController(host, token, dashboardURL, defaultPlayer string) *SamsungTVController {
 	return &SamsungTVController{
-		client:        samsungtv.New(host),
+		client:        samsungtv.New(host, token),
 		dashboardURL:  dashboardURL,
 		defaultPlayer: defaultPlayer,
 	}
@@ -104,5 +104,40 @@ func (s *SamsungTVController) HandleOpenBrowser(w http.ResponseWriter, r *http.R
 		"status": "success",
 		"url":    targetURL,
 		"message": "Browser opened on Samsung TV",
+	})
+}
+
+func (s *SamsungTVController) HandlePairing(w http.ResponseWriter, r *http.Request) {
+	if s.client == nil {
+		httpx.Error(w, http.StatusNotImplemented, "tv_not_configured",
+			"Samsung TV host is not configured - set SAMSUNG_TV_HOST first")
+		return
+	}
+
+	ctx := r.Context()
+	token, err := s.client.GetToken(ctx)
+	if err != nil {
+		httpx.JSON(w, http.StatusAccepted, map[string]any{
+			"status": "pairing_required",
+			"message": "Please accept the connection on your TV and try again",
+			"instructions": []string{
+				"1. Make sure your TV is turned on",
+				"2. A dialog should appear on your TV asking for permission",
+				"3. Select 'Allow' on your TV",
+				"4. Call this endpoint again to get the token",
+			},
+		})
+		return
+	}
+
+	httpx.JSON(w, http.StatusOK, map[string]any{
+		"status": "success",
+		"token":  token,
+		"message": "Pairing successful! Add this token to your configuration",
+		"instructions": []string{
+			"Add to /etc/tv-dashboard/api.env:",
+			fmt.Sprintf("SAMSUNG_TV_TOKEN=%s", token),
+			"Then restart: systemctl restart tv-dashboard-api",
+		},
 	})
 }

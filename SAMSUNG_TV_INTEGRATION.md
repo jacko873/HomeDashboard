@@ -6,18 +6,46 @@ This integration allows automatic control of Samsung Smart TVs to open the music
 
 1. **Automatic Browser Launch**: When music starts playing on the default player (e.g., Living Room), the TV automatically turns on and opens the dashboard in the browser
 2. **API Endpoint**: Manual control via POST `/api/music/tv/open-browser` endpoint
-3. **Configurable Dashboard URL**: Set your own dashboard URL in configuration
+3. **TV Pairing**: Secure authentication with your Samsung TV
+4. **Configurable Dashboard URL**: Set your own dashboard URL in configuration
 
-## Configuration
+## Initial Setup - TV Pairing
 
-Add these environment variables to your `.env` file or `/etc/tv-dashboard/api.env`:
+Samsung TVs require authentication for security. Follow these steps:
 
+### Step 1: Configure TV Host
+Add your TV's IP address to `/etc/tv-dashboard/api.env`:
 ```bash
-# IP address of your Samsung TV
 SAMSUNG_TV_HOST=192.168.1.100
+```
 
-# Dashboard URL to open (default: https://tvdashboard.home.thecasualbot.com/music)
+Then restart the service:
+```bash
+sudo systemctl restart tv-dashboard-api
+```
+
+### Step 2: Pair with Your TV
+1. Make sure your TV is turned on
+2. Run the pairing command:
+```bash
+curl -X POST http://localhost:8080/api/music/tv/pair
+```
+3. A dialog will appear on your TV asking for permission
+4. Use your TV remote to select "Allow"
+5. Run the command again to get the token
+6. You'll receive a response with the token
+
+### Step 3: Save the Token
+Add the token to `/etc/tv-dashboard/api.env`:
+```bash
+SAMSUNG_TV_HOST=192.168.1.100
+SAMSUNG_TV_TOKEN=YOUR_TOKEN_HERE
 SAMSUNG_TV_DASHBOARD_URL=https://tvdashboard.home.thecasualbot.com/music
+```
+
+Restart the service:
+```bash
+sudo systemctl restart tv-dashboard-api
 ```
 
 ## API Usage

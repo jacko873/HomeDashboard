@@ -3,23 +3,32 @@ package samsungtv
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
 type Client struct {
-	host string
+	host  string
+	token string
+	name  string
 	client *http.Client
 }
 
-func New(host string) *Client {
+func New(host, token string) *Client {
 	if host == "" {
 		return nil
 	}
 	return &Client{
-		host: host,
+		host:  host,
+		token: token,
+		name:  "TVDashboard",
 		client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -30,22 +39,89 @@ func (c *Client) Enabled() bool {
 	return c != nil && c.host != ""
 }
 
+// GetToken initiates pairing with the TV to get a token
+// The TV will show a dialog asking for permission
+func (c *Client) GetToken(ctx context.Context) (string, error) {
+	if c.host == "" {
+		return "", fmt.Errorf("Samsung TV host not configured")
+	}
+
+	// Generate a unique ID for this client
+	b := make([]byte, 16)
+	rand.Read(b)
+	deviceId := base64.URLEncoding.EncodeToString(b)
+
+	// Build the pairing URL
+	params := url.Values{}
+	params.Set("name", base64.StdEncoding.EncodeToString([]byte(c.name)))
+	params.Set("device_id", deviceId)
+	
+	pairingURL := fmt.Sprintf("http://%s:8001/api/v2/channels/samsung.remote.control?%s", 
+		c.host, params.Encode())
+
+	req, err := http.NewRequestWithContext(ctx, "GET", pairingURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create pairing request: %w", err)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to connect to TV (make sure TV is on): %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	
+	// Parse response to get token
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err == nil {
+		if data, ok := result["data"].(map[string]interface{}); ok {
+			if token, ok := data["token"].(string); ok && token != "" {
+				return token, nil
+			}
+		}
+	}
+
+	// If no token in response, user needs to accept on TV
+	return "", fmt.Errorf("pairing required - please accept the connection on your TV and try again")
+}
+
 func (c *Client) OpenBrowser(ctx context.Context, targetURL string) error {
 	if !c.Enabled() {
 		return fmt.Errorf("Samsung TV not configured")
 	}
 
-	// First, ensure TV is on
-	c.TurnOn(ctx)
-	time.Sleep(2 * time.Second)
+	// Method 1: Try using the Web API (newer TVs)
+	if err := c.openBrowserWebAPI(ctx, targetURL); err == nil {
+		return nil
+	}
 
-	// Use the samsung-tv-ws-api approach - sending a browser launch command
-	endpoint := fmt.Sprintf("http://%s:8002/api/v2/", c.host)
-	
+	// Method 2: Try using SmartThings API approach
+	if err := c.openBrowserSmartView(ctx, targetURL); err == nil {
+		return nil
+	}
+
+	// Method 3: Try legacy approach
+	return c.openBrowserLegacy(ctx, targetURL)
+}
+
+func (c *Client) openBrowserWebAPI(ctx context.Context, targetURL string) error {
+	// Build request URL with token if available
+	apiURL := fmt.Sprintf("http://%s:8001/api/v2/", c.host)
+	if c.token != "" {
+		apiURL = fmt.Sprintf("http://%s:8001/api/v2/?token=%s", c.host, c.token)
+	}
+
 	payload := map[string]interface{}{
-		"method": "ms.browser.launch",
+		"method": "ms.channel.emit",
 		"params": map[string]interface{}{
-			"target": targetURL,
+			"event": "ed.apps.launch",
+			"to":    "host",
+			"data": map[string]interface{}{
+				"appId":       "org.tizen.browser",
+				"action_type": "NATIVE_LAUNCH",
+				"metaTag":     targetURL,
+			},
 		},
 	}
 
@@ -54,7 +130,7 @@ func (c *Client) OpenBrowser(ctx context.Context, targetURL string) error {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(jsonData))
+	req, err := http.NewRequestWithContext(ctx, "POST", apiURL, bytes.NewReader(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -63,16 +139,77 @@ func (c *Client) OpenBrowser(ctx context.Context, targetURL string) error {
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		// Try alternate port 8001
-		endpoint = fmt.Sprintf("http://%s:8001/api/v2/", c.host)
-		req, _ = http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(jsonData))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err = c.client.Do(req)
-		if err != nil {
-			return fmt.Errorf("failed to send request to TV: %w", err)
-		}
+		return fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("TV returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+func (c *Client) openBrowserSmartView(ctx context.Context, targetURL string) error {
+	// SmartView 2.0 API endpoint
+	apiURL := fmt.Sprintf("http://%s:8002/api/v2/", c.host)
+	
+	payload := map[string]interface{}{
+		"id":     generateID(),
+		"method": "ms.browser.launch",
+		"params": map[string]interface{}{
+			"url": targetURL,
+		},
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", apiURL, bytes.NewReader(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("SmartView API returned status %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (c *Client) openBrowserLegacy(ctx context.Context, targetURL string) error {
+	// Legacy REST API approach
+	apiURL := fmt.Sprintf("http://%s:8080/ws/apps/ChromeCast", c.host)
+	
+	payload := fmt.Sprintf(`{"url": "%s"}`, targetURL)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", apiURL, strings.NewReader(payload))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("legacy API returned status %d", resp.StatusCode)
+	}
 
 	return nil
 }
@@ -82,14 +219,20 @@ func (c *Client) TurnOn(ctx context.Context) error {
 		return fmt.Errorf("Samsung TV not configured")
 	}
 
-	endpoint := fmt.Sprintf("http://%s:8001/api/v2/", c.host)
+	// Use Wake-on-LAN if possible (requires MAC address)
+	// For now, try sending KEY_POWER which might wake some TVs
+	
+	apiURL := fmt.Sprintf("http://%s:8001/api/v2/", c.host)
+	if c.token != "" {
+		apiURL = fmt.Sprintf("http://%s:8001/api/v2/?token=%s", c.host, c.token)
+	}
 	
 	payload := map[string]interface{}{
 		"method": "ms.remote.control",
 		"params": map[string]interface{}{
-			"Cmd": "Click",
-			"DataOfCmd": "KEY_POWER",
-			"Option": "false",
+			"Cmd":          "Click",
+			"DataOfCmd":    "KEY_POWER",
+			"Option":       "false",
 			"TypeOfRemote": "SendRemoteKey",
 		},
 	}
@@ -99,23 +242,25 @@ func (c *Client) TurnOn(ctx context.Context) error {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", apiURL, bytes.NewReader(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	q := req.URL.Query()
-	q.Add("name", "TVDashboard")
-	req.URL.RawQuery = q.Encode()
-
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-Length", fmt.Sprintf("%d", len(jsonData)))
 
+	// We don't care much about the response for power on
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil
+		return nil // TV might be off, that's ok
 	}
 	defer resp.Body.Close()
 
 	return nil
+}
+
+func generateID() string {
+	b := make([]byte, 8)
+	rand.Read(b)
+	return base64.URLEncoding.EncodeToString(b)
 }

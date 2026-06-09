@@ -54,6 +54,7 @@ type Config struct {
 
 	// Samsung TV configuration for browser control
 	SamsungTVHost string
+	SamsungTVToken string
 	SamsungTVDashboardURL string
 }
 
@@ -77,6 +78,7 @@ func FromEnv() Config {
 		SpotifyRateLimitCooldown: getduration("SPOTIFY_RATE_LIMIT_COOLDOWN", 5*time.Minute),
 
 		SamsungTVHost:         os.Getenv("SAMSUNG_TV_HOST"),
+		SamsungTVToken:        os.Getenv("SAMSUNG_TV_TOKEN"),
 		SamsungTVDashboardURL: getenv("SAMSUNG_TV_DASHBOARD_URL", "https://tvdashboard.home.thecasualbot.com/music"),
 	}
 }

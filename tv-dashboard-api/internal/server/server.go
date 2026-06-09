@@ -30,7 +30,7 @@ func New(cfg config.Config, log *slog.Logger, version string) http.Handler {
 		cfg.SpotifyRefreshToken, cfg.SpotifyRateLimitCooldown)
 	provider := musicProvider(cfg, log, spotifyClient)
 	tvAutomation := music.Register(mux, provider, cfg.DefaultPlayer, cfg.PublicBaseURL, spotifyClient,
-		cfg.SamsungTVHost, cfg.SamsungTVDashboardURL)
+		cfg.SamsungTVHost, cfg.SamsungTVToken, cfg.SamsungTVDashboardURL)
 	
 	// Start TV automation if configured
 	if tvAutomation != nil {
@@ -52,6 +52,7 @@ func New(cfg config.Config, log *slog.Logger, version string) http.Handler {
 				"GET /api/music/players",
 				"GET /api/music/art/{hue}",
 				"POST /api/music/tv/open-browser",
+				"POST /api/music/tv/pair",
 				"GET /api/system/health",
 				"GET /healthz",
 			},
