@@ -19,10 +19,11 @@ go run ./cmd/server        # listens on :8080, discovers Sonos via SSDP
 make run
 ```
 
-Point the frontend at it via its `.env`:
+Point the frontend at it via its `.env` (or rely on the dev proxy / same
+origin, which is the default — leave it empty):
 
 ```bash
-VITE_MUSIC_API_BASE_URL=http://<host>:8080
+VITE_API_BASE_URL=http://<host>:8080
 ```
 
 No Sonos on the network? Set `MUSIC_PROVIDER=demo` for built-in fake (but
@@ -74,7 +75,23 @@ how it was assembled:
 | `GET /api/music/art/{hue}` | Generated SVG album art used by the demo provider |
 | `GET /api/system/health` | Health/uptime/version info |
 | `GET /healthz` | Bare health alias for monitors |
-| `GET /` | Service info + endpoint list |
+| `GET /` | Service info + endpoint list (or the frontend, if `WEB_STATIC_DIR` is set) |
+
+**Placeholder dashboard endpoints** ([`internal/api/mock`](internal/api/mock))
+serve fixed JSON from embedded fixtures so the frontend's other screens work
+today. Each will graduate into its own `internal/api/<domain>` package with
+live data later.
+
+| Endpoint | Serves |
+| --- | --- |
+| `GET /api/daily-dashboard` | Weather, news, releases for the home screen |
+| `GET /api/calendar` | Calendar events |
+| `GET /api/movies` | Movie lists |
+| `GET /api/tv-shows` | TV show lists |
+| `GET /api/tasklists` | Task list summaries |
+| `GET /api/tasks` | Detailed tasks per list |
+| `GET /api/grocery` | Grocery list |
+| `GET /api/assistant` | Assistant ("Rocky") data |
 
 Errors use a uniform envelope: `{"error": {"code": "...", "message": "..."}}`.
 
@@ -158,6 +175,7 @@ directory (see [.env.example](.env.example)) — real env vars always win.
 | Variable | Default | Description |
 | --- | --- | --- |
 | `ADDR` | `:8080` | Listen address |
+| `WEB_STATIC_DIR` | *(unset = API only)* | Also serve the built frontend (its `dist/`) for non-`/api` routes, with SPA fallback — one process+port serves UI and API |
 | `CORS_ALLOWED_ORIGIN` | `*` | `Access-Control-Allow-Origin` value — the dashboard calls this API from the browser |
 | `PUBLIC_BASE_URL` | *(derived from request)* | URL browsers reach this API on, used for artwork links. Only needed behind path-stripping proxies, e.g. `https://<coder-host>/@<user>/<ws>/apps/code-server/proxy/8080` |
 | `MUSIC_PROVIDER` | `sonos` | Music backend: `sonos` or `demo` |
@@ -199,6 +217,8 @@ internal/api/
   music/             /api/music/… (types, Provider interface, sonos-first
                      provider with pollers + enrichment, demo provider, handler)
   system/            /api/system/… (health)
+  mock/              placeholder dashboard endpoints from embedded JSON
+                     (calendar, grocery, … — replace with real modules later)
 ```
 
 To add a new dashboard API (say, weather):
@@ -238,7 +258,7 @@ PUBLIC_BASE_URL=https://<coder-host>/@<user>/<workspace>/apps/code-server/proxy/
 ```
 
 then just `go run ./cmd/server` (or `make run`), and point the frontend's
-`VITE_MUSIC_API_BASE_URL` at that same URL.
+`VITE_API_BASE_URL` at that same URL.
 `PUBLIC_BASE_URL` makes artwork links resolvable from your browser (the
 path prefix is stripped by the proxy, so it can't be derived from requests).
 The port in `ADDR` and in both URLs must match.

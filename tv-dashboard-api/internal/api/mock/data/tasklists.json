@@ -1,0 +1,40 @@
+{
+  "tasklists": [
+    {
+      "id": "list-home",
+      "title": "Home Automation Rules",
+      "description": "Smart rules to code, deploy and test around the house.",
+      "totalTasks": 8,
+      "completedTasks": 5,
+      "icon": "Cpu",
+      "color": "indigo"
+    },
+    {
+      "id": "list-rocky",
+      "title": "Project Rocky (Companion Config)",
+      "description": "Rocky's environmental status monitoring dashboards and updates.",
+      "totalTasks": 5,
+      "completedTasks": 3,
+      "icon": "Rocket",
+      "color": "amber"
+    },
+    {
+      "id": "list-maintenance",
+      "title": "Daily Maintenance",
+      "description": "Recurrent tasks for keeping the server stack humming and backup status green.",
+      "totalTasks": 6,
+      "completedTasks": 4,
+      "icon": "Wrench",
+      "color": "emerald"
+    },
+    {
+      "id": "list-garden",
+      "title": "Xenon Hydroponic Garden",
+      "description": "Monitoring water system, nutrient values, and light schedules.",
+      "totalTasks": 4,
+      "completedTasks": 1,
+      "icon": "Leaf",
+      "color": "rose"
+    }
+  ]
+}

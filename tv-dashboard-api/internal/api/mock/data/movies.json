@@ -1,0 +1,109 @@
+{
+  "lists": [
+    {
+      "category": "Watchlist (Up Next)",
+      "items": [
+        {
+          "id": "m1",
+          "title": "Project Hail Mary",
+          "year": "2026",
+          "duration": "2h 15m",
+          "rating": "9.2",
+          "genres": ["Sci-Fi", "Adventure"],
+          "posterUrl": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop",
+          "description": "An astronaut wakes up alone in a space capsule with amnesia, and must find a way to save Earth from an extinction-level threat with an unlikely alien ally."
+        },
+        {
+          "id": "m2",
+          "title": "Eridian Dawn",
+          "year": "2025",
+          "duration": "1h 58m",
+          "rating": "8.7",
+          "genres": ["Sci-Fi", "Thriller"],
+          "posterUrl": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=400&auto=format&fit=crop",
+          "description": "Chronicles the discovery of the orbital astrophage organism and the high-hazard scientific mission sent to investigate it."
+        },
+        {
+          "id": "m3",
+          "title": "Silicon Horizon",
+          "year": "2024",
+          "duration": "2h 32m",
+          "rating": "8.5",
+          "genres": ["Action", "Cyberpunk"],
+          "posterUrl": "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400&auto=format&fit=crop",
+          "description": "A synthetic detective uncovers a database containing repressed memories of the original human settlers in Neo-Tokyo."
+        },
+        {
+          "id": "m4",
+          "title": "The Weaver of Astrophage",
+          "year": "2025",
+          "duration": "2h 02m",
+          "rating": "8.1",
+          "genres": ["Sci-Fi", "Drama"],
+          "posterUrl": "https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=400&auto=format&fit=crop",
+          "description": "The intricate engineering challenges of building a starship powered by relativistic biological fuel cells."
+        }
+      ]
+    },
+    {
+      "category": "Recently Added to Home Server",
+      "items": [
+        {
+          "id": "m5",
+          "title": "Outlier Echoes",
+          "year": "2024",
+          "duration": "1h 44m",
+          "rating": "7.9",
+          "genres": ["Mystery", "Thriller"],
+          "posterUrl": "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=400&auto=format&fit=crop",
+          "description": "A long-range deep-space antenna picks up an anomalous signal originating from inside the Oort Cloud, repeating a prime number sequence."
+        },
+        {
+          "id": "m6",
+          "title": "Solitude in Space",
+          "year": "2025",
+          "duration": "2h 10m",
+          "rating": "8.4",
+          "genres": ["Drama", "Sci-Fi"],
+          "posterUrl": "https://images.unsplash.com/photo-1461360370896-922624d12aa1?q=80&w=400&auto=format&fit=crop",
+          "description": "A single engineer works maintaining a communications relay station in deep-space dark zones, exploring solitude and human identity."
+        },
+        {
+          "id": "m7",
+          "title": "The Pine Cabin",
+          "year": "2024",
+          "duration": "1h 50m",
+          "rating": "7.5",
+          "genres": ["Mystery", "Drama"],
+          "posterUrl": "https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=400&auto=format&fit=crop",
+          "description": "A writer retreats to an isolated forest cabin only to find that she is not alone, as strange signals begin broadcasting from an ancient radio."
+        }
+      ]
+    },
+    {
+      "category": "Trending & Popular Movies",
+      "items": [
+        {
+          "id": "m8",
+          "title": "Tau Ceti Transit",
+          "year": "2025",
+          "duration": "2h 45m",
+          "rating": "9.0",
+          "genres": ["Sci-Fi", "Epic"],
+          "posterUrl": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop",
+          "description": "An epic cinematic exploration of the journey from Sol to the Tau Ceti system, spanning thirty years of near-luminal travel and cryogenic stasis."
+        },
+        {
+          "id": "m9",
+          "title": "Glacial Rift",
+          "year": "2024",
+          "duration": "1h 56m",
+          "rating": "7.8",
+          "genres": ["Adventure", "Action"],
+          "posterUrl": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=400&auto=format&fit=crop",
+          "description": "An expedition navigating a treacherous ice-shelf rift in search of prehistoric records trapped inside a sub-glacial pocket."
+        }
+      ]
+    }
+  ]
+}

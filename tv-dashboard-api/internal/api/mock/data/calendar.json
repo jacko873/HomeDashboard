@@ -1,0 +1,67 @@
+{
+  "events": [
+    {
+      "id": "e1",
+      "title": "Project Fail-Safe Server Routine Maintenance",
+      "date": "2026-06-12",
+      "time": "14:00 - 15:30",
+      "category": "Home IT",
+      "description": "Backup local databases to redundant cold-storage server, update secrets.",
+      "color": "indigo"
+    },
+    {
+      "id": "e2",
+      "title": "Eridian Translation Practice Session",
+      "date": "2026-06-12",
+      "time": "17:00 - 18:00",
+      "category": "Education",
+      "description": "Review newly acquired chord variations from Rocky on the soundboard.",
+      "color": "amber"
+    },
+    {
+      "id": "e3",
+      "title": "Water Hydroponic Garden & Flush Nutrients",
+      "date": "2026-06-13",
+      "time": "09:00 - 10:30",
+      "category": "Garden",
+      "description": "Clean secondary grow filters of salt crystals and calibrate pH sensors.",
+      "color": "emerald"
+    },
+    {
+      "id": "e4",
+      "title": "Summer Astronomy Night (Oort Observation)",
+      "date": "2026-06-15",
+      "time": "21:00 - 01:00",
+      "category": "Hobbies",
+      "description": "Ideal telescope visibility conditions. Focus on high-altitude constellation lines.",
+      "color": "sky"
+    },
+    {
+      "id": "e5",
+      "title": "Project Hail Mary Sequel Broadcast Premiere",
+      "date": "2026-06-16",
+      "time": "20:00 - 22:30",
+      "category": "Entertainment",
+      "description": "Airing Episode 7 of the high-budget cinematic sci-fi production.",
+      "color": "rose"
+    },
+    {
+      "id": "e6",
+      "title": "Dentist Checkup & Cleaning Appointment",
+      "date": "2026-06-18",
+      "time": "10:30 - 11:30",
+      "category": "Personal",
+      "description": "Routine dental exam downtown.",
+      "color": "purple"
+    },
+    {
+      "id": "e7",
+      "title": "Weekly Grocery Pickup & Produce Sourcing",
+      "date": "2026-06-19",
+      "time": "16:00 - 17:00",
+      "category": "Shopping",
+      "description": "Pick up grocery list items and premium fuel cells for stove.",
+      "color": "amber"
+    }
+  ]
+}

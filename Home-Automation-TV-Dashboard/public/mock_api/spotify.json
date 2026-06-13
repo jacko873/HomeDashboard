@@ -1,0 +1,83 @@
+{
+  "isPlaying": true,
+  "title": "Grace Under Pressure",
+  "artist": "The Eridian Harmony",
+  "album": "Solitary Solstice",
+  "durationMs": 242000,
+  "progressMs": 95000,
+  "albumArtUrl": "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=600&auto=format&fit=crop",
+  "deviceName": "85\" Living Room TV",
+  "volumePercent": 65,
+  "queue": [
+    {
+      "id": "q1",
+      "title": "Melodic Trills for Rocky",
+      "artist": "Asteria Chamber Orchestra",
+      "duration": "3:42",
+      "album": "Eridian Nights"
+    },
+    {
+      "id": "q2",
+      "title": "Project Hail Mary Theme",
+      "artist": "C.S. Composer",
+      "duration": "4:15",
+      "album": "The Odyssey OST"
+    },
+    {
+      "id": "q3",
+      "title": "Synchronized Pulse",
+      "artist": "Xenon Beats",
+      "duration": "2:58",
+      "album": "Quantum Static"
+    },
+    {
+      "id": "q4",
+      "title": "Ammonia Sunrise",
+      "artist": "Stonetone Studio",
+      "duration": "5:12",
+      "album": "Heavy Atmosphere"
+    },
+    {
+      "id": "q5",
+      "title": "Starlight Navigation",
+      "artist": "The Astrals",
+      "duration": "3:30",
+      "album": "Deep Void"
+    },
+    {
+      "id": "q6",
+      "title": "Fist Bump Celebration",
+      "artist": "Rocky & Grace",
+      "duration": "1:45",
+      "album": "Xenon Beats"
+    },
+    {
+      "id": "q7",
+      "title": "Hot Ammonia Bubble",
+      "artist": "Soothe Tech",
+      "duration": "6:20",
+      "album": "Eridian Ambient"
+    },
+    {
+      "id": "q8",
+      "title": "Tau Ceti Transit",
+      "artist": "Warp-5 Jazz Trio",
+      "duration": "4:02",
+      "album": "Relativistic Speed"
+    },
+    {
+      "id": "q9",
+      "title": "The Weaver's Craft",
+      "artist": "Iron Stone",
+      "duration": "3:10",
+      "album": "Solitary Solstice"
+    },
+    {
+      "id": "q10",
+      "title": "Resonance Frequency",
+      "artist": "The Eridian Harmony",
+      "duration": "3:49",
+      "album": "Solitary Solstice"
+    }
+  ]
+}

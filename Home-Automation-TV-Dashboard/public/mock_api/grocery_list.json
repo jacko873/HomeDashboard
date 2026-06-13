@@ -1,0 +1,39 @@
+{
+  "categories": [
+    {
+      "name": "Produce (Fresh Fruits & Veggies)",
+      "items": [
+        { "id": "g1", "name": "Organic Honeycrisp Apples", "qty": "5 pcs", "bought": false },
+        { "id": "g2", "name": "Fresh Spinach Tub", "qty": "2 packs", "bought": true },
+        { "id": "g3", "name": "Avocados (Medium)", "qty": "4 pcs", "bought": false },
+        { "id": "g4", "name": "Baby Carrots Bag", "qty": "1 lb", "bought": true },
+        { "id": "g5", "name": "Lemon (For Tea & Cooking)", "qty": "6 pcs", "bought": false }
+      ]
+    },
+    {
+      "name": "Dairy & Alternatives",
+      "items": [
+        { "id": "g6", "name": "Whole Milk (Or Almond Milk)", "qty": "1 gal", "bought": false },
+        { "id": "g7", "name": "Greek Yogurt (Honey/Vanilla)", "qty": "2 large tubs", "bought": true },
+        { "id": "g8", "name": "Salted Butter Blocks", "qty": "2 lbs", "bought": false },
+        { "id": "g9", "name": "Sharp Cheddar Block", "qty": "8 oz", "bought": true }
+      ]
+    },
+    {
+      "name": "Pantry & Spices",
+      "items": [
+        { "id": "g10", "name": "Medium Roast Coffee Beans", "qty": "2 bags", "bought": false },
+        { "id": "g11", "name": "Ancient Grains Sourdough Bread", "qty": "1 loaf", "bought": false },
+        { "id": "g12", "name": "Whole Wheat Rigatoni Pasta", "qty": "3 packs", "bought": true },
+        { "id": "g13", "name": "Extra Virgin Olive Oil", "qty": "1 bottle", "bought": false }
+      ]
+    },
+    {
+      "name": "Household & Supplies",
+      "items": [
+        { "id": "g14", "name": "Heavy Duty Trash Bags (13 G)", "qty": "1 box", "bought": true },
+        { "id": "g15", "name": "Microfiber Sponges", "qty": "4 pack", "bought": false }
+      ]
+    }
+  ]
+}

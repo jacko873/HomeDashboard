@@ -1,0 +1,51 @@
+{
+  "name": "Rocky",
+  "species": "Eridian",
+  "habitat": "High pressure chamber (29 atmospheres, hot ammonia air)",
+  "temperament": "Curious, highly polite, extremely technical, friendly",
+  "status": {
+    "bodyTemp": "205°C (401°F)",
+    "chamberPressure": "29.1 atm",
+    "chamberOxygen": "0.0%",
+    "mood": "Very happy!",
+    "activity": "Weaving a high-tensile fiberglass harness"
+  },
+  "vocabulary": [
+    { "concept": "Hello / Greeting", "soundNotes": "C4 - E4 - G4 (Clairvoyant C-Major Triad)", "english": "Hello, human friend!" },
+    { "concept": "Question", "soundNotes": "A4 - F4 (Curious falling third)", "english": "Question?" },
+    { "concept": "Danger / Warning", "soundNotes": "F#4 - F#4 - F#4 (Urgent static monotone)", "english": "Bad, bad, bad!" },
+    { "concept": "Thank you", "soundNotes": "G4 - C5 (Grateful rising perfect fourth)", "english": "Thank you! I am glad!" },
+    { "concept": "Fist Bump", "soundNotes": "E♭4 - B♭4 - E♭5 (Resonating hollow brass trills)", "english": "Fist bump, select yes!" }
+  ],
+  "quotes": [
+    "“You are space monster. I am space monster. We are both space monsters, question?”",
+    "“I am scary stone spider. Yes, yes! But nice spider, human friend!”",
+    "“Human brain is heavy. Lots of water! My brain is solid steel fibers. Good!”",
+    "“You leak water, question? Yes! Very leaky. Put paste on leaks!”",
+    "“Sleep now, Grace. I watch. I do not sleep for another ninety hours.”"
+  ],
+  "conversations": [
+    {
+      "id": "c1",
+      "timestamp": "10:15 AM",
+      "prompt": "How is the home server looking today, Rocky?",
+      "chords": "♩♭ ♪ E-Minor, G-Minor trill",
+      "translation": "Server is solid! Fiber-optic lines are tight! Temperature is low. Good, good, good! No leaks!"
+    },
+    {
+      "id": "c2",
+      "timestamp": "08:30 AM",
+      "prompt": "Rocky, are all home automation schedules active?",
+      "chords": "♩ ♪ C-Major Arpeggio, C5 slide",
+      "timestamp_relative": "2 hours ago",
+      "translation": "Yes, light schedules active! Hydroponic pumps are pumping, and the smart blinds closed when Sol got too bright. Smart house, question? Yes!"
+    },
+    {
+      "id": "c3",
+      "timestamp": "Yesterday",
+      "prompt": "Rocky, do we need block list updates for local movies?",
+      "chords": "♫ ♬ F-Sharp minor, falling trill",
+      "translation": "No block lists, perfect directory sync! All video files are ready to stream on big TV."
+    }
+  ]
+}

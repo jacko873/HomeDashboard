@@ -21,6 +21,12 @@ type Config struct {
 	// only needed behind path-stripping proxies (e.g. code-server's
 	// /proxy/<port>/), where the prefix can't be derived.
 	PublicBaseURL string
+	// StaticDir, when set, makes the API also serve the built frontend (the
+	// dashboard's dist/ directory) for all non-/api routes, with SPA fallback
+	// to index.html. This lets one process+port serve both the UI and the API
+	// (like nginx in production), avoiding a separate Vite dev server. Empty =
+	// API only (the default), and / returns the JSON service index.
+	StaticDir string
 
 	// MusicProvider selects the music backend: "sonos" (default) reads from
 	// Sonos players on the local network; "demo" serves built-in fake data.
@@ -51,11 +57,6 @@ type Config struct {
 	// SpotifyRateLimitCooldown pauses all Spotify calls after a 429
 	// (extended to Retry-After when that is longer).
 	SpotifyRateLimitCooldown time.Duration
-
-	// Samsung TV configuration for browser control
-	SamsungTVHost string
-	SamsungTVToken string
-	SamsungTVDashboardURL string
 }
 
 func FromEnv() Config {
@@ -63,6 +64,7 @@ func FromEnv() Config {
 		Addr:              getenv("ADDR", ":8080"),
 		CORSAllowedOrigin: getenv("CORS_ALLOWED_ORIGIN", "*"),
 		PublicBaseURL:     strings.TrimRight(os.Getenv("PUBLIC_BASE_URL"), "/"),
+		StaticDir:         os.Getenv("WEB_STATIC_DIR"),
 
 		MusicProvider:     getenv("MUSIC_PROVIDER", "sonos"),
 		DefaultPlayer:     getenv("DEFAULT_PLAYER", "living_room"),
@@ -76,10 +78,6 @@ func FromEnv() Config {
 		SpotifyCacheTTL:          getduration("SPOTIFY_CACHE_TTL", 24*time.Hour),
 		SpotifyNegativeCacheTTL:  getduration("SPOTIFY_NEGATIVE_CACHE_TTL", 10*time.Minute),
 		SpotifyRateLimitCooldown: getduration("SPOTIFY_RATE_LIMIT_COOLDOWN", 5*time.Minute),
-
-		SamsungTVHost:         os.Getenv("SAMSUNG_TV_HOST"),
-		SamsungTVToken:        os.Getenv("SAMSUNG_TV_TOKEN"),
-		SamsungTVDashboardURL: getenv("SAMSUNG_TV_DASHBOARD_URL", "https://tvdashboard.home.thecasualbot.com/music"),
 	}
 }
 

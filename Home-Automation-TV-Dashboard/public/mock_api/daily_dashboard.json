@@ -1,0 +1,50 @@
+{
+  "weather": {
+    "currentTemp": 72,
+    "feelsLike": 74,
+    "high": 76,
+    "low": 58,
+    "condition": "Partly Cloudy",
+    "humidityPercent": 48,
+    "windSpeedMph": 9,
+    "location": "Asteria Outpost",
+    "forecast": [
+      { "time": "Now", "temp": 72, "icon": "Sun" },
+      { "time": "12:00", "temp": 74, "icon": "Sun" },
+      { "time": "15:00", "temp": 76, "icon": "Sun" },
+      { "time": "18:00", "temp": 71, "icon": "CloudSun" },
+      { "time": "21:00", "temp": 64, "icon": "Cloud" },
+      { "time": "00:00", "temp": 59, "icon": "Moon" }
+    ]
+  },
+  "localNews": [
+    {
+      "id": "n1",
+      "source": "Asteria Chronicle",
+      "headline": "Aura Borealis Outbreak Predicted Over Latitudes 40-50° Tonight",
+      "snippet": "Solar magnetic ejecta are on pace to interact with upper atmospheric layers starting around 22:00. Clear skies are anticipated, offering optimal viewing conditions."
+    },
+    {
+      "id": "n2",
+      "source": "Erid Tech Bulletin",
+      "headline": "High-Pressure Enclosure Engineering Standard Updated for 30-Atm Atmosphere Vents",
+      "snippet": "Joint teams release standard revision 4.2 detailing the structural reinforcement profiles required for high-grade silicone gaskets under high helium proportions."
+    }
+  ],
+  "releases": [
+    {
+      "id": "r1",
+      "title": "Tau Ceti Transit (Epic Documentary Series)",
+      "type": "Movie",
+      "releaseDay": "Today",
+      "platform": "Plex Server (4K)"
+    },
+    {
+      "id": "r2",
+      "title": "Project Hail Mary: Chronicles Episode 6",
+      "type": "TV Show",
+      "releaseDay": "Tonight at 20:00",
+      "platform": "Jellyfin Channel 2"
+    }
+  ]
+}

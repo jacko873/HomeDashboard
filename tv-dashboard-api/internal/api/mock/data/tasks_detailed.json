@@ -1,0 +1,140 @@
+{
+  "tasks": {
+    "list-home": [
+      {
+        "id": "lh1",
+        "title": "Configure living room 85\" default TV dashboard launch on idle",
+        "completed": true,
+        "priority": "High",
+        "dueDate": "Today",
+        "notes": "Verify that custom homeassistant triggers can correctly switch HDMI ports and cast."
+      },
+      {
+        "id": "lh2",
+        "title": "Debug basement climate sensor fluctuating over 24°C",
+        "completed": true,
+        "priority": "Medium",
+        "dueDate": "Yesterday",
+        "notes": "Replaced original CR2032 state battery. Monitor log graph for sudden dropouts."
+      },
+      {
+        "id": "lh3",
+        "title": "Integrate Spotify client token refresh in central Golang API",
+        "completed": false,
+        "priority": "High",
+        "dueDate": "June 14",
+        "notes": "Ensure token scopes allow reading active device status and queue details."
+      },
+      {
+        "id": "lh4",
+        "title": "Set up dusk/dawn automatic shades schedules",
+        "completed": true,
+        "priority": "Low",
+        "dueDate": "June 10",
+        "notes": "Synced with local sunrise tracking coordinate system."
+      },
+      {
+        "id": "lh5",
+        "title": "Calibrate dining room dimmer curves",
+        "completed": false,
+        "priority": "Medium",
+        "dueDate": "June 16",
+        "notes": "Avoid flickering on low percentage values (0-15%)."
+      },
+      {
+        "id": "lh6",
+        "title": "Map doorbell camera stream to overlay on TV when pressed",
+        "completed": false,
+        "priority": "High",
+        "dueDate": "June 20",
+        "notes": "Plex API webhook should pause video playback and toggle picture-in-picture stream."
+      }
+    ],
+    "list-rocky": [
+      {
+        "id": "lr1",
+        "title": "Re-generate atmospheric pressure reports (29 atmospheres)",
+        "completed": true,
+        "priority": "High",
+        "dueDate": "Today",
+        "notes": "Verify the high-pressure steel chamber pressure valves match digital calculations."
+      },
+      {
+        "id": "lr2",
+        "title": "Calibrate text-to-music translation database dictionary",
+        "completed": true,
+        "priority": "High",
+        "dueDate": "Yesterday",
+        "notes": "Assigned pitches: Middle C = Hello, F-sharp = Danger, E-flat = Happy."
+      },
+      {
+        "id": "lr3",
+        "title": "Add vocal text synthesis visualizer widget to dashboard",
+        "completed": false,
+        "priority": "Medium",
+        "dueDate": "June 15",
+        "notes": "Animate audio wave style trills to reflect Rocky's musical syntax."
+      },
+      {
+        "id": "lr4",
+        "title": "Test 'Fist Bump' recognition camera trigger",
+        "completed": false,
+        "priority": "Low",
+        "dueDate": "June 22",
+        "notes": "Verify hands detector identifies radial leg points of Eridian."
+      }
+    ],
+    "list-maintenance": [
+      {
+        "id": "lm1",
+        "title": "Check server room backup RAID disk array status",
+        "completed": true,
+        "priority": "High",
+        "dueDate": "Every Friday",
+        "notes": "Disk 3 is re-silvered successfully. All sectors verified green."
+      },
+      {
+        "id": "lm2",
+        "title": "Update Docker containers on central stack",
+        "completed": true,
+        "priority": "Medium",
+        "dueDate": "June 11",
+        "notes": "Plex Media Server, Home Assistant Core, and Mosquitto Broker updated."
+      },
+      {
+        "id": "lm3",
+        "title": "Rotate API secrets and backup key files",
+        "completed": false,
+        "priority": "High",
+        "dueDate": "June 15",
+        "notes": "Place rotated key backups in securely encrypted vault."
+      },
+      {
+        "id": "lm4",
+        "title": "Dust intake filters of the master rack locker",
+        "completed": false,
+        "priority": "Low",
+        "dueDate": "June 18",
+        "notes": "Temps are stable but dust accretion is visually getting noticeable."
+      }
+    ],
+    "list-garden": [
+      {
+        "id": "lg1",
+        "title": "Refill primary nutrient solution tanks",
+        "completed": false,
+        "priority": "High",
+        "dueDate": "June 13",
+        "notes": "Formula A + B ratio 1:1. Target EC value is 2.1 mS/cm."
+      },
+      {
+        "id": "lg2",
+        "title": "Verify automatic lighting relays",
+        "completed": true,
+        "priority": "Medium",
+        "dueDate": "June 10",
+        "notes": "Relay #4 correctly switches on at 06:00 and off at 22:00 local time."
+      }
+    ]
+  }
+}

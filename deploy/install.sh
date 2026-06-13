@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 #
-# Home Dashboard — install/update script for an LXC container (Debian/Ubuntu).
+# Home Dashboard — the single install AND update script for an LXC container
+# (Debian/Ubuntu). There is no separate update script: to update, pull the
+# repo and re-run this — it is idempotent and only restarts what changed.
 #
 # What it does (idempotent — safe to re-run for updates):
 #   1. apt update + upgrade
@@ -107,18 +109,8 @@ install_node() {
     apt-get install -y -qq nodejs
 }
 
-install_samsung_tv_api() {
-    log "Installing samsung-tv-ws-api"
-    npm install -g samsung-tv-ws-api >/dev/null 2>&1 || {
-        log "Failed to install samsung-tv-ws-api globally, installing locally"
-        mkdir -p "$APP_DIR/samsung-tv"
-        (cd "$APP_DIR/samsung-tv" && npm init -y >/dev/null 2>&1 && npm install samsung-tv-ws-api >/dev/null 2>&1)
-    }
-}
-
 install_go
 install_node
-install_samsung_tv_api
 export PATH=$PATH:/usr/local/go/bin
 
 # ── 3. get the source ──────────────────────────────────────────────────────
@@ -156,10 +148,10 @@ version=$(git -C "$SRC_DIR" describe --tags --always 2>/dev/null || echo unknown
 mv -f "$APP_DIR/bin/server.new" "$APP_DIR/bin/server"
 
 log "Building the frontend"
-(cd "$SRC_DIR/tv-dashboard" &&
+(cd "$SRC_DIR/Home-Automation-TV-Dashboard" &&
     npm ci --no-audit --no-fund --silent &&
     # Empty API base URL = same origin; nginx proxies /api to the Go service.
-    VITE_MUSIC_API_BASE_URL="" VITE_DEFAULT_MUSIC_PLAYER="$DEFAULT_PLAYER" \
+    VITE_API_BASE_URL="" VITE_DEFAULT_MUSIC_PLAYER="$DEFAULT_PLAYER" \
         npm run build --silent)
 
 # ── 5. deploy ──────────────────────────────────────────────────────────────
@@ -191,11 +183,6 @@ if [ ! -f $ENV_FILE ]; then
         emit SPOTIFY_CLIENT_ID ""
         emit SPOTIFY_CLIENT_SECRET ""
         emit SPOTIFY_REFRESH_TOKEN ""
-        echo
-        echo "# Samsung TV integration (optional — for browser control):"
-        emit SAMSUNG_TV_HOST ""
-        emit SAMSUNG_TV_TOKEN ""
-        emit SAMSUNG_TV_DASHBOARD_URL "https://tvdashboard.home.thecasualbot.com/music"
     } > $ENV_FILE
     chmod 600 $ENV_FILE
     log "Created $ENV_FILE (edit it to configure Sonos/Spotify)"
@@ -243,7 +230,7 @@ fi
 
 log "Deploying the frontend (nginx on port $HTTP_PORT)"
 mkdir -p $WEB_ROOT
-rsync -a --delete "$SRC_DIR/tv-dashboard/dist/" $WEB_ROOT/
+rsync -a --delete "$SRC_DIR/Home-Automation-TV-Dashboard/dist/" $WEB_ROOT/
 
 cat > /etc/nginx/sites-available/tv-dashboard <<EOF
 server {
@@ -287,11 +274,10 @@ fi
 
 log "Done."
 echo
-echo "  Dashboard:   http://${ip:-<container-ip>}:$HTTP_PORT/music"
-echo "  Debug page:  http://${ip:-<container-ip>}:$HTTP_PORT/debug"
+echo "  Dashboard:   http://${ip:-<container-ip>}:$HTTP_PORT/"
 echo "  Players:     http://${ip:-<container-ip>}:$HTTP_PORT/api/music/players"
 echo "  API health:  $health"
 echo "  API config:  $ENV_FILE   (then: systemctl restart $SERVICE)"
 echo "  API logs:    journalctl -u $SERVICE -f"
 echo
-echo "  Update later: git pull && ./deploy/install.sh   (or re-run with REPO_URL)"
+echo "  Update later: re-run this same script — git pull && sudo ./deploy/install.sh"
