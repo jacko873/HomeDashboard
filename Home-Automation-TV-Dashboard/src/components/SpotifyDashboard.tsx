@@ -102,7 +102,7 @@ export default function SpotifyDashboard() {
   const progressPercent = data.durationMs > 0 ? Math.min((progressMs / data.durationMs) * 100, 100) : 0;
 
   return (
-    <div className="flex-1 bg-gradient-to-b from-[#0e0f13] via-[#07080a] to-[#040405] p-12 text-white overflow-y-auto custom-scrollbar relative flex flex-col justify-between">
+    <div className="flex-1 bg-gradient-to-b from-[#0e0f13] via-[#07080a] to-[#040405] p-5 sm:p-8 xl:p-12 text-white overflow-y-auto custom-scrollbar relative flex flex-col justify-between gap-6">
       {/* Dynamic blurred album-art backdrop (ported from the original dashboard) */}
       <BackgroundArt artworkUrl={data.artworkUrl} />
 
@@ -111,8 +111,8 @@ export default function SpotifyDashboard() {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[140px] pointer-events-none -ml-40 -mb-40 z-[1]" />
 
       {/* Header Info */}
-      <div className="flex justify-between items-center z-10 mb-8 pb-6 border-b border-white/5">
-        <div>
+      <div className="flex justify-between items-center gap-4 z-10 pb-4 sm:pb-6 border-b border-white/5">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="flex h-2 w-2 relative">
               {isPlaying && (
@@ -120,11 +120,11 @@ export default function SpotifyDashboard() {
               )}
               <span className={`relative inline-flex rounded-full h-2 w-2 ${isPlaying ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
             </span>
-            <p className="font-mono text-xs uppercase text-emerald-400 tracking-wider font-extrabold">Active Device: {data.roomName}</p>
+            <p className="font-mono text-xs uppercase text-emerald-400 tracking-wider font-extrabold truncate">Active Device: {data.roomName}</p>
           </div>
-          <h2 className="text-4xl font-extrabold tracking-tight font-display text-white">{isPlaying ? 'Now Playing' : 'Paused'}</h2>
+          <h2 className="text-2xl sm:text-3xl xl:text-4xl font-extrabold tracking-tight font-display text-white">{isPlaying ? 'Now Playing' : 'Paused'}</h2>
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-2.5 flex items-center gap-3 backdrop-blur-md">
+        <div className="bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-2.5 flex items-center gap-3 backdrop-blur-md shrink-0">
           {data.isMuted ? <VolumeX className="w-5 h-5 text-slate-400" /> : <Volume2 className="w-5 h-5 text-slate-400" />}
           <div className="w-24 bg-white/10 h-1.5 rounded-full overflow-hidden">
             <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${data.isMuted ? 0 : data.volume}%` }} />
@@ -134,9 +134,9 @@ export default function SpotifyDashboard() {
       </div>
 
       {/* Main split dashboard (Left: Album Art & Controls, Right: Queue) */}
-      <div className="grid grid-cols-12 gap-12 z-10 flex-1 items-center">
-        {/* Left Side: Massive High-Fidelity Album Art Frame for 85 inch screen */}
-        <div className="col-span-12 lg:col-span-7 flex flex-col md:flex-row items-center gap-10">
+      <div className="grid grid-cols-12 gap-6 xl:gap-12 z-10 flex-1 items-center">
+        {/* Left Side: High-fidelity album art frame — scales from phone to 85" TV */}
+        <div className="col-span-12 lg:col-span-7 flex flex-col md:flex-row items-center gap-5 sm:gap-8 lg:gap-10">
           <div className="relative group shrink-0">
             {/* Soft border shadow glowing with ambient artwork coloration */}
             <div className="absolute inset-0 rounded-[2.5rem] bg-emerald-500/10 blur-[40px] opacity-60 scale-95 pointer-events-none" />
@@ -144,12 +144,12 @@ export default function SpotifyDashboard() {
               <img
                 src={data.artworkUrl}
                 alt={data.album}
-                className="w-[360px] h-[360px] md:w-[420px] md:h-[420px] rounded-[2.5rem] border border-white/15 object-cover shadow-2xl relative z-10 transition-transform duration-500"
+                className="w-44 h-44 sm:w-60 sm:h-60 lg:w-72 lg:h-72 xl:w-[26rem] xl:h-[26rem] rounded-3xl xl:rounded-[2.5rem] border border-white/15 object-cover shadow-2xl relative z-10 transition-transform duration-500"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-[360px] h-[360px] md:w-[420px] md:h-[420px] rounded-[2.5rem] border border-white/15 bg-white/[0.03] flex items-center justify-center shadow-2xl relative z-10">
-                <Music4 className="w-20 h-20 text-slate-600" />
+              <div className="w-44 h-44 sm:w-60 sm:h-60 lg:w-72 lg:h-72 xl:w-[26rem] xl:h-[26rem] rounded-3xl xl:rounded-[2.5rem] border border-white/15 bg-white/[0.03] flex items-center justify-center shadow-2xl relative z-10">
+                <Music4 className="w-16 h-16 xl:w-20 xl:h-20 text-slate-600" />
               </div>
             )}
             {/* Spinning small vinyl details in bottom corner for TV animation feel */}
@@ -157,7 +157,7 @@ export default function SpotifyDashboard() {
               className="absolute -bottom-2 -right-2 bg-slate-900 border border-white/15 p-2.5 rounded-full z-20 shadow-lg"
               style={isPlaying ? { animation: 'spin 10s linear infinite' } : undefined}
             >
-              <Music4 className="w-5.5 h-5.5 text-emerald-400" />
+              <Music4 className="w-5 h-5 text-emerald-400" />
             </div>
           </div>
 
@@ -165,10 +165,10 @@ export default function SpotifyDashboard() {
             <p className="text-emerald-400 font-mono text-xs uppercase tracking-widest mb-1.5 font-extrabold">
               {isPlaying ? 'Now Streaming' : 'Paused'}
             </p>
-            <h3 className="text-4xl md:text-5xl font-black font-display tracking-tight text-white mb-2 leading-tight">
+            <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black font-display tracking-tight text-white mb-2 leading-tight">
               {data.title}
             </h3>
-            <p className="text-2xl text-slate-300 font-bold tracking-normal mb-1">
+            <p className="text-lg sm:text-xl xl:text-2xl text-slate-300 font-bold tracking-normal mb-1">
               {data.artist}
             </p>
             <p className="text-slate-500 font-bold text-sm tracking-wide">
@@ -176,7 +176,7 @@ export default function SpotifyDashboard() {
             </p>
 
             {/* TV player status panel (non-interactive visual layout) */}
-            <div className="flex items-center gap-4 justify-center md:justify-start mt-8">
+            <div className="flex items-center gap-4 justify-center md:justify-start mt-5 sm:mt-8">
               <span className="p-3 bg-emerald-400 text-slate-950 rounded-full font-bold shadow-md">
                 {isPlaying ? (
                   <Play className="w-5 h-5 fill-slate-950 text-slate-950" />
@@ -192,8 +192,8 @@ export default function SpotifyDashboard() {
         </div>
 
         {/* Right Side: Up Next Queue */}
-        <div className="col-span-12 lg:col-span-5 bg-white/[0.02] border border-white/10 rounded-[2.5rem] p-8 h-[550px] overflow-hidden flex flex-col backdrop-blur-xl">
-          <div className="flex items-center gap-2 mb-6 border-b border-white/5 pb-4">
+        <div className="col-span-12 lg:col-span-5 bg-white/[0.02] border border-white/10 rounded-3xl xl:rounded-[2.5rem] p-5 sm:p-6 xl:p-8 h-[300px] sm:h-[380px] lg:h-[460px] xl:h-[34rem] overflow-hidden flex flex-col backdrop-blur-xl">
+          <div className="flex items-center gap-2 mb-4 sm:mb-6 border-b border-white/5 pb-4">
             <Layers className="w-4 h-4 text-[#a5b4fc]" />
             <h3 className="text-lg font-extrabold text-white tracking-tight font-display">
               Queue{' '}
@@ -239,7 +239,7 @@ export default function SpotifyDashboard() {
       </div>
 
       {/* Progress Bar & Timeline (Bottom Block) */}
-      <div className="z-10 mt-8 pt-8 border-t border-white/5">
+      <div className="z-10 pt-5 sm:pt-8 border-t border-white/5">
         <div className="flex justify-between text-xs font-mono text-slate-400 mb-2.5 font-bold">
           <span>{formatTime(progressMs)}</span>
           <span>{formatTime(data.durationMs)}</span>

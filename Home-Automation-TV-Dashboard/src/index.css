@@ -7,6 +7,19 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+/* ---------------------------------------------------------------------------
+ * Global UI scale. Tailwind sizes text AND spacing in rem, so shrinking the
+ * root font size shrinks the whole UI proportionally across every dashboard.
+ * The AI-Studio design was drawn very large for an 85" TV; tune this one knob
+ * to taste — lower = smaller UI, higher = bigger. 1 = original size.
+ * ------------------------------------------------------------------------- */
+:root {
+  --ui-scale: 0.72;
+}
+html {
+  font-size: calc(100% * var(--ui-scale));
+}
+
 body {
   background-color: #050505;
   color: #f1f5f9;

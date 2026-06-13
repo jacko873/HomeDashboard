@@ -23,7 +23,11 @@ interface SidebarProps {
 export default function Sidebar({ activeTab, setActiveTab, remoteMode, toggleRemoteMode }: SidebarProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const isExpanded = isHovered || isFocused;
+  // After a mouse click on a nav item the drawer collapses, even though the
+  // pointer is still over it; it re-expands once the pointer leaves and
+  // returns. Skipped in remote mode, which relies on focus-driven expansion.
+  const [collapsedAfterClick, setCollapsedAfterClick] = useState(false);
+  const isExpanded = (isHovered || isFocused) && !collapsedAfterClick;
 
   const menuItems = [
     { id: 'daily-dashboard', label: 'Daily Dashboard', icon: LayoutDashboard },
@@ -41,11 +45,14 @@ export default function Sidebar({ activeTab, setActiveTab, remoteMode, toggleRem
     <aside 
       id="sidebar-panel" 
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setCollapsedAfterClick(false);
+      }}
       onFocusCapture={() => setIsFocused(true)}
       onBlurCapture={() => setIsFocused(false)}
       className={`${
-        isExpanded ? 'w-[320px] px-6' : 'w-[96px] px-4'
+        isExpanded ? 'w-80 px-6' : 'w-24 px-4'
       } bg-white/[0.02] border-r border-white/5 flex flex-col justify-between py-8 shrink-0 backdrop-blur-2xl transition-all duration-500 ease-out relative z-30`}
     >
       <div>
@@ -56,12 +63,12 @@ export default function Sidebar({ activeTab, setActiveTab, remoteMode, toggleRem
               <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
             </div>
             {isExpanded && (
-              <p className="text-[10px] font-mono uppercase tracking-widest text-[#a5b4fc] text-slate-450 ml-1 font-extrabold">Asteria OS</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[#a5b4fc] text-slate-450 ml-1 font-extrabold">Rocky OS</p>
             )}
           </div>
           {isExpanded ? (
             <h1 className="text-2xl font-black tracking-tight text-white font-sans">
-              Asteria <span className="text-emerald-400 tracking-tighter shadow-emerald-400/20">TV</span>
+              Rocky <span className="text-emerald-400 tracking-tighter shadow-emerald-400/20">TV</span>
             </h1>
           ) : (
             <span className="text-lg font-black font-sans text-emerald-400">A</span>
@@ -77,7 +84,15 @@ export default function Sidebar({ activeTab, setActiveTab, remoteMode, toggleRem
               <button
                 key={item.id}
                 id={`nav-${item.id}`}
-                onClick={() => setActiveTab(item.id)}
+                onClick={(e) => {
+                  setActiveTab(item.id);
+                  // Auto-close the drawer after a click (mouse use). In remote
+                  // mode, leave it expanded so arrow navigation keeps working.
+                  if (!remoteMode) {
+                    setCollapsedAfterClick(true);
+                    e.currentTarget.blur();
+                  }
+                }}
                 className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-left border transition-all duration-300 outline-none relative group ${
                   isActive
                     ? 'bg-white/10 text-white border-white/15 font-semibold shadow-[0_0_20px_rgba(16,185,129,0.1)] shadow-black/20'
